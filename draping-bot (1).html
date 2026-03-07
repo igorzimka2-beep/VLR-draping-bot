@@ -684,33 +684,19 @@ function setStep2Done() {
 }
 
 function googleAuth() {
-  if (!CLIENT_ID) {
-    // Demo mode: show instructions
-    showClientIdModal();
-    return;
-  }
-  const url = `https://accounts.google.com/o/oauth2/v2/auth?` +
-    `client_id=${encodeURIComponent(CLIENT_ID)}&` +
-    `redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&` +
-    `response_type=token&` +
-    `scope=${encodeURIComponent(SCOPES)}`;
-  window.open(url, '_blank', 'width=500,height=600');
-  window.addEventListener('message', e => {
-    if (e.data && e.data.access_token) {
-      accessToken = e.data.access_token;
-      uploadToSheets();
-    }
-  });
+  // handled by btn-auth onclick
 }
 
-// Handle OAuth redirect with token in hash
+// Handle OAuth redirect with token in hash (when this page IS the redirect)
 window.addEventListener('load', () => {
   const hash = window.location.hash.substring(1);
   const params = new URLSearchParams(hash);
   const token = params.get('access_token');
   if (token) {
-    window.opener && window.opener.postMessage({ access_token: token }, '*');
-    window.close();
+    if (window.opener) {
+      window.opener.postMessage({ access_token: token }, '*');
+      window.close();
+    }
   }
 });
 
@@ -794,9 +780,12 @@ function showClientIdModal() {
         1. Відкрийте <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:#7c6eff;">console.cloud.google.com/apis/credentials</a><br>
         2. Створіть проект → <b>Create Credentials → OAuth client ID</b><br>
         3. Тип: <b>Web application</b><br>
-        4. Authorized JS origins: <b>${window.location.origin}</b><br>
-        5. Скопіюйте Client ID і вставте нижче<br>
-        6. Увімкніть Google Sheets API у бібліотеці
+        4. <b>Authorized JavaScript origins:</b><br>
+        <code style="background:#1a1a2e;padding:3px 8px;border-radius:4px;color:#4fffb0;font-size:11px;">${window.location.origin}</code><br>
+        5. <b>Authorized redirect URIs:</b><br>
+        <code style="background:#1a1a2e;padding:3px 8px;border-radius:4px;color:#4fffb0;font-size:11px;">${(window.location.origin + window.location.pathname).replace(/\/$/, '')}</code><br>
+        6. Увімкніть <b>Google Sheets API</b> у бібліотеці<br>
+        7. Скопіюйте Client ID і вставте нижче
       </div>
       <input id="cid-input" placeholder="xxxx.apps.googleusercontent.com" style="width:100%;background:#0d0d14;border:1px solid #2a2a3a;border-radius:8px;padding:10px 14px;color:#e8e8f0;font-family:DM Mono,monospace;font-size:12px;margin-bottom:12px;outline:none;">
       <div style="display:flex;gap:10px;">
@@ -826,25 +815,50 @@ function applyClientId() {
 function doGoogleAuth(clientId) {
   const cid = clientId || sessionStorage.getItem('google_client_id') || CLIENT_ID;
   if (!cid) { showClientIdModal(); return; }
+
+  // redirect_uri must EXACTLY match what's registered in Google Console
+  // Use origin + pathname, strip trailing slash
+  const redirectUri = (window.location.origin + window.location.pathname).replace(/\/$/, '');
+
   const url = `https://accounts.google.com/o/oauth2/v2/auth?` +
     `client_id=${encodeURIComponent(cid)}&` +
-    `redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&` +
+    `redirect_uri=${encodeURIComponent(redirectUri)}&` +
     `response_type=token&` +
     `scope=${encodeURIComponent(SCOPES)}`;
-  const popup = window.open(url, '_blank', 'width=500,height=600');
+
+  // Show the exact redirect_uri in console for debugging
+  console.log('OAuth redirect_uri:', redirectUri);
+
+  const popup = window.open(url, 'google-auth', 'width=520,height=620,left=200,top=100');
+
+  // Listen for postMessage from popup (when it redirects back here)
+  const msgHandler = (e) => {
+    if (e.data && e.data.access_token) {
+      accessToken = e.data.access_token;
+      window.removeEventListener('message', msgHandler);
+      uploadToSheets();
+    }
+  };
+  window.addEventListener('message', msgHandler);
+
+  // Also poll popup hash directly (same-origin after redirect)
   const check = setInterval(() => {
+    if (!popup || popup.closed) { clearInterval(check); return; }
     try {
       const hash = popup.location.hash;
       if (hash && hash.includes('access_token')) {
         const params = new URLSearchParams(hash.substring(1));
-        accessToken = params.get('access_token');
-        popup.close();
-        clearInterval(check);
-        uploadToSheets();
+        const token = params.get('access_token');
+        if (token) {
+          accessToken = token;
+          popup.close();
+          clearInterval(check);
+          window.removeEventListener('message', msgHandler);
+          uploadToSheets();
+        }
       }
-    } catch(e) {}
-    if (popup.closed) clearInterval(check);
-  }, 300);
+    } catch(e) { /* cross-origin, wait for redirect back */ }
+  }, 400);
 }
 
 // Override googleAuth to use sessionStorage if available
