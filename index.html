@@ -567,17 +567,30 @@ function processFiles() {
     const angleRow   = data[1];  // index 1
 
     // Hero fabric info from col E header (index 4)
+    // Handles:
+    //   "All Modern Hero Fabric 2393-83 Lena Sand"  (SKU then name)
+    //   "Hero Fabric Mina Sterling 2503-93"          (name then SKU)
     const heroHeader = headerRow[4] || '';
-    // Extract SKU and name: "All Modern Hero Fabric 2393-83 Lena Sand"
-    const heroMatch  = heroHeader.match(/(\d{4}-\d+)\s+(.+)$/);
-    const heroSku    = heroMatch ? heroMatch[1] : '2393-83';
-    const heroName   = heroMatch ? heroMatch[2].trim() : 'Lena Sand';
-    const heroFull   = `${heroSku} ${heroName}`;
+    let heroSku, heroName;
+    const heroMatchEnd = heroHeader.match(/Hero Fabric\s+(.+?)\s+(\d{4}-\d+)\s*$/i);
+    const heroMatchMid = heroHeader.match(/(\d{4}-\d+)\s+(.+)$/);
+    if (heroMatchEnd) {
+      heroSku  = heroMatchEnd[2].trim();
+      heroName = heroMatchEnd[1].trim();
+    } else if (heroMatchMid) {
+      heroSku  = heroMatchMid[1].trim();
+      heroName = heroMatchMid[2].trim();
+    } else {
+      heroSku  = '2393-83';
+      heroName = 'Lena Sand';
+    }
+    const heroFull = `${heroSku} ${heroName}`;
 
     // Additional collection name from col L header (index 11)
-    const addHeader  = headerRow[11] || 'Remaining All Modern Fabric List';
-    // Extract collection name: "Remaining All Modern Fabric List" → "All Modern"
-    const addColMatch = addHeader.match(/Remaining\s+(.+?)\s+Fabric\s+List/i);
+    // Handles: "Remaining All Modern Fabric List" → "All Modern"
+    //          "Remaining Carolina Uph Studio Fabrics" → "Carolina Uph Studio"
+    const addHeader   = headerRow[11] || '';
+    const addColMatch = addHeader.match(/Remaining\s+(.+?)\s+Fabric(?:s|\s+List)?$/i);
     const addCollName = addColMatch ? addColMatch[1].trim() : 'All Modern';
 
     log('info', `Hero fabric: ${heroFull}`);
