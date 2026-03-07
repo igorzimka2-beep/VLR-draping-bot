@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Draping Batch Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Unbounded:wght@300;600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #18181f;
+    --border: #2a2a3a;
+    --accent: #7c6eff;
+    --accent2: #ff6e9c;
+    --text: #e8e8f0;
+    --muted: #666680;
+    --success: #4fffb0;
+    --error: #ff4f6e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,110,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,110,255,.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow-orb {
+    position: fixed;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,110,255,.12) 0%, transparent 70%);
+    top: -200px; right: -200px;
+    pointer-events: none;
+    z-index: 0;
+    animation: orbFloat 8s ease-in-out infinite;
+  }
+  .glow-orb2 {
+    position: fixed;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,110,156,.08) 0%, transparent 70%);
+    bottom: -100px; left: -100px;
+    pointer-events: none;
+    z-index: 0;
+    animation: orbFloat 11s ease-in-out infinite reverse;
+  }
+  @keyframes orbFloat {
+    0%,100% { transform: translate(0,0); }
+    50% { transform: translate(30px, 30px); }
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+  }
+
+  header {
+    margin-bottom: 56px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(124,110,255,.12);
+    border: 1px solid rgba(124,110,255,.3);
+    border-radius: 99px;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .4; transform: scale(.7); }
+  }
+
+  h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  /* Steps */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    transition: border-color .2s;
+  }
+  .step:hover { border-color: rgba(124,110,255,.4); }
+  .step.active { border-color: var(--accent); }
+  .step.done { border-color: rgba(79,255,176,.3); }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .step-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .step-num.pending { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+  .step-num.active-num { background: var(--accent); color: #fff; box-shadow: 0 0 16px rgba(124,110,255,.5); }
+  .step-num.done-num { background: rgba(79,255,176,.15); border: 1px solid rgba(79,255,176,.4); color: var(--success); }
+
+  .step-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+  }
+
+  /* File drop zones */
+  .drop-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  @media(max-width:600px) { .drop-grid { grid-template-columns: 1fr; } }
+
+  .drop-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 10px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    background: var(--surface2);
+    position: relative;
+    overflow: hidden;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(124,110,255,.06);
+  }
+  .drop-zone.loaded {
+    border-color: var(--success);
+    border-style: solid;
+    background: rgba(79,255,176,.04);
+  }
+  .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .drop-icon { font-size: 24px; margin-bottom: 8px; }
+  .drop-label {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .drop-label strong { color: var(--text); display: block; font-size: 12px; margin-bottom: 4px; }
+  .drop-zone.loaded .drop-label { color: var(--success); }
+  .file-name {
+    font-size: 10px;
+    color: var(--success);
+    margin-top: 6px;
+    word-break: break-all;
+    opacity: .8;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s;
+    border: none;
+    letter-spacing: .02em;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(124,110,255,.3);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #9488ff;
+    box-shadow: 0 4px 28px rgba(124,110,255,.5);
+    transform: translateY(-1px);
+  }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+  .btn-google {
+    background: #fff;
+    color: #1a1a1a;
+    box-shadow: 0 2px 12px rgba(0,0,0,.3);
+  }
+  .btn-google:hover:not(:disabled) {
+    background: #f5f5f5;
+    transform: translateY(-1px);
+  }
+  .btn-google:disabled { opacity: .4; cursor: not-allowed; }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid rgba(124,110,255,.4);
+  }
+  .btn-outline:hover { background: rgba(124,110,255,.08); border-color: var(--accent); }
+
+  .btn-success {
+    background: rgba(79,255,176,.15);
+    color: var(--success);
+    border: 1px solid rgba(79,255,176,.3);
+    font-size: 14px;
+    padding: 14px 28px;
+  }
+  .btn-success:hover { background: rgba(79,255,176,.22); }
+
+  /* Log / preview */
+  .log {
+    background: #0d0d14;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 11.5px;
+    line-height: 1.8;
+    color: var(--muted);
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 16px;
+    display: none;
+  }
+  .log.show { display: block; }
+  .log .ok { color: var(--success); }
+  .log .err { color: var(--error); }
+  .log .info { color: var(--accent); }
+  .log .dim { color: #444460; }
+
+  /* Preview table */
+  .preview-wrap {
+    overflow-x: auto;
+    margin-top: 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    display: none;
+  }
+  .preview-wrap.show { display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th {
+    background: var(--surface2);
+    color: var(--muted);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 500;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    font-size: 10px;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(42,42,58,.5);
+    vertical-align: top;
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(124,110,255,.03); }
+  .td-name { color: var(--accent); max-width: 260px; }
+  .td-msg { max-width: 200px; white-space: pre-wrap; color: var(--muted); font-size: 10px; }
+  .td-sku { color: #aaa; max-width: 180px; word-break: break-all; }
+  .td-price { color: var(--success); white-space: nowrap; }
+
+  /* Result */
+  .result-box {
+    display: none;
+    background: var(--surface);
+    border: 1px solid rgba(79,255,176,.3);
+    border-radius: 16px;
+    padding: 28px;
+    text-align: center;
+    margin-top: 16px;
+  }
+  .result-box.show { display: block; animation: fadeIn .4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .result-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 16px;
+    color: var(--success);
+    margin-bottom: 8px;
+  }
+  .result-url {
+    color: var(--muted);
+    font-size: 12px;
+    word-break: break-all;
+    margin-bottom: 20px;
+  }
+  .result-url a { color: var(--accent); text-decoration: none; }
+  .result-url a:hover { text-decoration: underline; }
+
+  /* Separator */
+  .sep {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 8px 0 20px;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+    padding: 10px 14px;
+    background: rgba(124,110,255,.06);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    margin-top: 12px;
+  }
+
+  .row-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(79,255,176,.1);
+    border: 1px solid rgba(79,255,176,.2);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--success);
+    margin-top: 10px;
+  }
+
+  #spinner {
+    display: none;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="glow-orb"></div>
+<div class="glow-orb2"></div>
+
+<div class="container">
+  <header>
+    <div class="badge">CGI Automation Tool</div>
+    <h1>Draping Batch<br>Generator</h1>
+    <p class="subtitle">Автоматично генерує batch CSV з ракурсами та тканинами,<br>і завантажує результат у Google Spreadsheet.</p>
+  </header>
+
+  <div class="steps">
+
+    <!-- STEP 1: Upload files -->
+    <div class="step active" id="step1">
+      <div class="step-header">
+        <div class="step-num active-num" id="num1">1</div>
+        <div class="step-title">Завантажте файли</div>
+      </div>
+
+      <div class="drop-grid">
+        <div class="drop-zone" id="zone-draping" onclick="document.getElementById('inp-draping').click()">
+          <input type="file" id="inp-draping" accept=".xlsx,.xls">
+          <div class="drop-icon">📐</div>
+          <div class="drop-label">
+            <strong>Draping Worksheet</strong>
+            Binford_AM2571_Draping...xlsx
+          </div>
+          <div class="file-name" id="fname-draping"></div>
+        </div>
+
+        <div class="drop-zone" id="zone-vlr" onclick="document.getElementById('inp-vlr').click()">
+          <input type="file" id="inp-vlr" accept=".xlsx,.xls">
+          <div class="drop-icon">🎨</div>
+          <div class="drop-label">
+            <strong>VLR Fabric File</strong>
+            VLR_Fabric_File_for_CGI.xlsx
+          </div>
+          <div class="file-name" id="fname-vlr"></div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btn-process" disabled onclick="processFiles()">
+        <div id="spinner"></div>
+        <span id="btn-process-text">⚡ Обробити файли</span>
+      </button>
+
+      <div class="log" id="log"></div>
+    </div>
+
+    <!-- STEP 2: Preview -->
+    <div class="step" id="step2">
+      <div class="step-header">
+        <div class="step-num pending" id="num2">2</div>
+        <div class="step-title">Перегляд результату</div>
+      </div>
+      <div id="preview-info" style="color:var(--muted);font-size:12px;">Спочатку завантажте файли...</div>
+      <div class="preview-wrap" id="preview-wrap">
+        <table id="preview-table">
+          <thead>
+            <tr>
+              <th>A — Name</th>
+              <th>C — Message</th>
+              <th>E — SKU</th>
+              <th>F — Items (count)</th>
+            </tr>
+          </thead>
+          <tbody id="preview-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STEP 3: Google Sheets -->
+    <div class="step" id="step3">
+      <div class="step-header">
+        <div class="step-num pending" id="num3">3</div>
+        <div class="step-title">Завантажити в Google Sheets</div>
+      </div>
+
+      <div id="google-content">
+        <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">
+          Авторизуйтесь у Google, щоб автоматично створити Spreadsheet та отримати посилання.
+        </p>
+        <button class="btn btn-google" id="btn-auth" onclick="googleAuth()" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Увійти через Google
+        </button>
+        <div class="hint" id="google-hint">
+          ℹ️ Потрібний дозвіл на Google Sheets (spreadsheets scope). Файл буде створено у вашому Drive.
+        </div>
+      </div>
+
+      <div class="result-box" id="result-box">
+        <div class="result-title">✅ Spreadsheet створено!</div>
+        <div class="result-url" id="result-url"></div>
+        <a id="btn-open" href="#" target="_blank" class="btn btn-success">
+          📊 Відкрити Google Spreadsheet →
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const CLIENT_ID   = ''; // paste your Google Client ID here
+const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
+const PRICE_CODE  = '384257';
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let drapingWb = null, vlrWb = null;
+let csvRows = [];
+let accessToken = null;
+
+// ─── FILE INPUT HANDLERS ─────────────────────────────────────────────────────
+document.getElementById('inp-draping').addEventListener('change', e => loadFile(e.target.files[0], 'draping'));
+document.getElementById('inp-vlr').addEventListener('change',    e => loadFile(e.target.files[0], 'vlr'));
+
+// Drag-and-drop
+['draping','vlr'].forEach(id => {
+  const zone = document.getElementById('zone-'+id);
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) loadFile(file, id);
+  });
+});
+
+function loadFile(file, type) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const data = new Uint8Array(e.target.result);
+    const wb = XLSX.read(data, { type: 'array' });
+    if (type === 'draping') {
+      drapingWb = wb;
+      document.getElementById('zone-draping').classList.add('loaded');
+      document.getElementById('fname-draping').textContent = file.name;
+    } else {
+      vlrWb = wb;
+      document.getElementById('zone-vlr').classList.add('loaded');
+      document.getElementById('fname-vlr').textContent = file.name;
+    }
+    if (drapingWb && vlrWb) {
+      document.getElementById('btn-process').disabled = false;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ─── PROCESSING ──────────────────────────────────────────────────────────────
+function processFiles() {
+  const logEl = document.getElementById('log');
+  logEl.innerHTML = '';
+  logEl.classList.add('show');
+  setSpinner(true);
+
+  try {
+    log('info', '▶ Читаємо Draping Worksheet...');
+
+    const ws = drapingWb.Sheets[drapingWb.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+
+    // Row 0 = header, Row 1 = angle names
+    const headerRow  = data[0];  // index 0
+    const angleRow   = data[1];  // index 1
+
+    // Hero fabric info from col E header (index 4)
+    const heroHeader = headerRow[4] || '';
+    // Extract SKU and name: "All Modern Hero Fabric 2393-83 Lena Sand"
+    const heroMatch  = heroHeader.match(/(\d{4}-\d+)\s+(.+)$/);
+    const heroSku    = heroMatch ? heroMatch[1] : '2393-83';
+    const heroName   = heroMatch ? heroMatch[2].trim() : 'Lena Sand';
+    const heroFull   = `${heroSku} ${heroName}`;
+
+    // Additional collection name from col L header (index 11)
+    const addHeader  = headerRow[11] || 'Remaining All Modern Fabric List';
+    // Extract collection name: "Remaining All Modern Fabric List" → "All Modern"
+    const addColMatch = addHeader.match(/Remaining\s+(.+?)\s+Fabric\s+List/i);
+    const addCollName = addColMatch ? addColMatch[1].trim() : 'All Modern';
+
+    log('info', `Hero fabric: ${heroFull}`);
+    log('info', `Additional collection: ${addCollName}`);
+
+    // Angle columns (0-indexed): hero E(4)-K(10), additional L(11)-N(13)
+    const heroAngleCols = {};
+    const addAngleCols  = {};
+    [4,5,6,7,8,9,10].forEach(i => { if (angleRow[i]) heroAngleCols[i] = String(angleRow[i]).trim(); });
+    [11,12,13].forEach(i => { if (angleRow[i]) addAngleCols[i]  = String(angleRow[i]).trim(); });
+
+    log('dim', `Hero angles: ${Object.values(heroAngleCols).join(', ')}`);
+    log('dim', `Add angles: ${Object.values(addAngleCols).join(', ')}`);
+
+    // Parse model rows (from row index 2 onwards)
+    const models = [];
+    for (let i = 2; i < data.length; i++) {
+      const row = data[i];
+      const collection = row[0], sku = row[1];
+      if (!collection || !sku) continue;
+      const heroAngles = Object.entries(heroAngleCols)
+        .filter(([idx]) => row[idx] && String(row[idx]).trim().toLowerCase() === 'yes')
+        .map(([, name]) => name);
+      const addAngles  = Object.entries(addAngleCols)
+        .filter(([idx]) => row[idx] && String(row[idx]).trim().toLowerCase() === 'yes')
+        .map(([, name]) => name);
+      models.push({ collection: `${collection} Collection`, sku, heroAngles, addAngles });
+    }
+    log('ok', `✓ Знайдено моделей: ${models.length}`);
+
+    // Get VLR fabrics for the additional collection
+    const vlrSheet = vlrWb.Sheets[addCollName] || vlrWb.Sheets[vlrWb.SheetNames[0]];
+    const vlrData  = XLSX.utils.sheet_to_json(vlrSheet, { header: 1, defval: null });
+    const addFabrics = vlrData.slice(1)
+      .map(r => r[0] ? String(r[0]).trim() : null)
+      .filter(f => f && f !== heroSku);
+
+    log('ok', `✓ Тканин у ${addCollName}: ${addFabrics.length} (hero виключено)`);
+
+    // Build rows
+    csvRows = [['Name', 'Description', 'Message', 'Invite', 'SKU', 'Items', 'Estimate Date']];
+
+    for (const m of models) {
+      // Hero row
+      if (m.heroAngles.length) {
+        const msg   = `В неймінгу задачі СКУ моделі і текстури яка потрібна. Ракурси які потрібні:\n` + m.heroAngles.map(a => `- ${a}`).join('\n');
+        const items = Array(m.heroAngles.length).fill(PRICE_CODE).join(', ') + ', ';
+        csvRows.push([`${m.collection} ${m.sku} // ${heroFull} Draping`, '', msg, '', heroSku, items, '']);
+      }
+      // Additional fabrics row
+      if (m.addAngles.length) {
+        const msg   = `В неймінгу задачі СКУ моделі яка потрібна. \nРакурси які потрібні:\n` + m.addAngles.map(a => `- ${a}`).join('\n') + '\n';
+        const n     = m.addAngles.length * addFabrics.length;
+        const items = Array(n).fill(PRICE_CODE).join(', ') + ', ';
+        const skus  = addFabrics.join(', ');
+        csvRows.push([`${m.collection} ${m.sku} // ${addCollName} Fabric Draping`, '', msg, '', skus, items, '']);
+      }
+    }
+
+    log('ok', `✓ Рядків згенеровано: ${csvRows.length - 1}`);
+    log('ok', '✅ Обробка завершена!');
+
+    // Show preview
+    renderPreview(csvRows);
+    setStep2Done();
+    setSpinner(false);
+
+  } catch(err) {
+    log('err', '✗ Помилка: ' + err.message);
+    setSpinner(false);
+    console.error(err);
+  }
+}
+
+function renderPreview(rows) {
+  const tbody = document.getElementById('preview-body');
+  tbody.innerHTML = '';
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    const priceCount = (r[5].match(/384257/g) || []).length;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-name">${esc(r[0])}</td>
+      <td class="td-msg">${esc(r[2].substring(0,80))}${r[2].length>80?'…':''}</td>
+      <td class="td-sku">${esc((r[4]||'').substring(0,60))}${(r[4]||'').length>60?'…':''}</td>
+      <td class="td-price">${priceCount}× $7 = $${priceCount*7}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+  document.getElementById('preview-wrap').classList.add('show');
+  document.getElementById('preview-info').innerHTML = `
+    <span class="row-count">📋 ${rows.length-1} рядків готово до завантаження</span>
+  `;
+}
+
+// ─── GOOGLE OAUTH ────────────────────────────────────────────────────────────
+function setStep2Done() {
+  document.getElementById('step2').classList.add('active');
+  document.getElementById('num2').className = 'step-num done-num';
+  document.getElementById('num2').textContent = '✓';
+  document.getElementById('step3').classList.add('active');
+  document.getElementById('num3').className = 'step-num active-num';
+  document.getElementById('btn-auth').disabled = false;
+}
+
+function googleAuth() {
+  if (!CLIENT_ID) {
+    // Demo mode: show instructions
+    showClientIdModal();
+    return;
+  }
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${encodeURIComponent(CLIENT_ID)}&` +
+    `redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&` +
+    `response_type=token&` +
+    `scope=${encodeURIComponent(SCOPES)}`;
+  window.open(url, '_blank', 'width=500,height=600');
+  window.addEventListener('message', e => {
+    if (e.data && e.data.access_token) {
+      accessToken = e.data.access_token;
+      uploadToSheets();
+    }
+  });
+}
+
+// Handle OAuth redirect with token in hash
+window.addEventListener('load', () => {
+  const hash = window.location.hash.substring(1);
+  const params = new URLSearchParams(hash);
+  const token = params.get('access_token');
+  if (token) {
+    window.opener && window.opener.postMessage({ access_token: token }, '*');
+    window.close();
+  }
+});
+
+async function uploadToSheets() {
+  const btn = document.getElementById('btn-auth');
+  btn.disabled = true;
+  btn.innerHTML = '<div id="spinner" style="display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:#333;border-radius:50%;animation:spin .7s linear infinite"></div> Створюємо...';
+
+  try {
+    // Determine spreadsheet name
+    const firstRow = csvRows[1] || [];
+    const nameMatch = (firstRow[0] || '').match(/^(.+?) Collection/);
+    const baseName  = nameMatch ? nameMatch[1] : 'All Modern';
+    const ssName    = `${baseName} Collection_batch`;
+
+    // 1. Create spreadsheet
+    const createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ properties: { title: ssName } })
+    });
+    const ss = await createRes.json();
+    if (!ss.spreadsheetId) throw new Error(JSON.stringify(ss));
+
+    const ssId  = ss.spreadsheetId;
+    const ssUrl = ss.spreadsheetUrl;
+
+    // 2. Write data
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${ssId}/values/A1?valueInputOption=RAW`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ values: csvRows })
+    });
+
+    // 3. Style header row
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${ssId}:batchUpdate`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requests: [
+          {
+            repeatCell: {
+              range: { sheetId: 0, startRowIndex: 0, endRowIndex: 1 },
+              cell: { userEnteredFormat: { backgroundColor: { red:.1, green:.1, blue:.2 }, textFormat: { bold: true } } },
+              fields: 'userEnteredFormat(backgroundColor,textFormat)'
+            }
+          },
+          { updateSheetProperties: { properties: { sheetId:0, gridProperties: { frozenRowCount:1 } }, fields:'gridProperties.frozenRowCount' } }
+        ]
+      })
+    });
+
+    // Show result
+    document.getElementById('result-box').classList.add('show');
+    document.getElementById('result-url').innerHTML = `<a href="${ssUrl}" target="_blank">${ssUrl}</a>`;
+    document.getElementById('btn-open').href = ssUrl;
+    document.getElementById('num3').className = 'step-num done-num';
+    document.getElementById('num3').textContent = '✓';
+    document.getElementById('step3').classList.add('done');
+    document.getElementById('google-hint').style.display = 'none';
+
+  } catch(err) {
+    alert('Помилка завантаження: ' + err.message);
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Увійти через Google';
+  }
+}
+
+// ─── CLIENT ID MODAL ─────────────────────────────────────────────────────────
+function showClientIdModal() {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:#111118;border:1px solid #2a2a3a;border-radius:20px;padding:32px;max-width:520px;width:100%;font-family:DM Mono,monospace;">
+      <div style="font-family:Unbounded,sans-serif;font-size:18px;font-weight:700;color:#e8e8f0;margin-bottom:8px;">🔑 Потрібен Google Client ID</div>
+      <p style="color:#666680;font-size:12px;line-height:1.7;margin-bottom:20px;">
+        Для автоматичного завантаження в Google Sheets потрібно створити OAuth Client ID у Google Cloud Console.
+      </p>
+      <div style="background:#0d0d14;border:1px solid #2a2a3a;border-radius:10px;padding:16px;margin-bottom:20px;font-size:11px;color:#aaa;line-height:2;">
+        <div style="color:#7c6eff;margin-bottom:8px;font-size:12px;">Кроки:</div>
+        1. Відкрийте <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:#7c6eff;">console.cloud.google.com/apis/credentials</a><br>
+        2. Створіть проект → <b>Create Credentials → OAuth client ID</b><br>
+        3. Тип: <b>Web application</b><br>
+        4. Authorized JS origins: <b>${window.location.origin}</b><br>
+        5. Скопіюйте Client ID і вставте нижче<br>
+        6. Увімкніть Google Sheets API у бібліотеці
+      </div>
+      <input id="cid-input" placeholder="xxxx.apps.googleusercontent.com" style="width:100%;background:#0d0d14;border:1px solid #2a2a3a;border-radius:8px;padding:10px 14px;color:#e8e8f0;font-family:DM Mono,monospace;font-size:12px;margin-bottom:12px;outline:none;">
+      <div style="display:flex;gap:10px;">
+        <button onclick="applyClientId()" style="flex:1;background:#7c6eff;color:#fff;border:none;border-radius:8px;padding:10px;font-family:DM Mono,monospace;font-size:12px;cursor:pointer;">✅ Зберегти та увійти</button>
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="background:#18181f;color:#666;border:1px solid #2a2a3a;border-radius:8px;padding:10px 16px;font-family:DM Mono,monospace;font-size:12px;cursor:pointer;">Скасувати</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#cid-input').focus();
+}
+
+function applyClientId() {
+  const val = document.getElementById('cid-input').value.trim();
+  if (!val) return;
+  // Inject client ID and re-trigger auth
+  document.querySelectorAll('script').forEach(s => {
+    if (s.textContent.includes("CLIENT_ID   = ''")) {
+      // Can't change const at runtime, use sessionStorage
+    }
+  });
+  sessionStorage.setItem('google_client_id', val);
+  document.querySelector('div[style*="fixed"]').remove();
+  doGoogleAuth(val);
+}
+
+function doGoogleAuth(clientId) {
+  const cid = clientId || sessionStorage.getItem('google_client_id') || CLIENT_ID;
+  if (!cid) { showClientIdModal(); return; }
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${encodeURIComponent(cid)}&` +
+    `redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&` +
+    `response_type=token&` +
+    `scope=${encodeURIComponent(SCOPES)}`;
+  const popup = window.open(url, '_blank', 'width=500,height=600');
+  const check = setInterval(() => {
+    try {
+      const hash = popup.location.hash;
+      if (hash && hash.includes('access_token')) {
+        const params = new URLSearchParams(hash.substring(1));
+        accessToken = params.get('access_token');
+        popup.close();
+        clearInterval(check);
+        uploadToSheets();
+      }
+    } catch(e) {}
+    if (popup.closed) clearInterval(check);
+  }, 300);
+}
+
+// Override googleAuth to use sessionStorage if available
+document.getElementById('btn-auth').onclick = () => {
+  const cid = sessionStorage.getItem('google_client_id') || CLIENT_ID;
+  if (!cid) showClientIdModal();
+  else doGoogleAuth(cid);
+};
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function log(type, msg) {
+  const el = document.getElementById('log');
+  el.innerHTML += `<div class="${type}">${esc(msg)}</div>`;
+  el.scrollTop = el.scrollHeight;
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function setSpinner(on) {
+  document.getElementById('spinner').style.display = on ? 'inline-block' : 'none';
+  document.getElementById('btn-process-text').textContent = on ? 'Обробляємо...' : '⚡ Обробити файли';
+  document.getElementById('btn-process').disabled = on;
+}
+</script>
+</body>
+</html>
