@@ -563,14 +563,21 @@ function processFiles() {
     const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
 
     // Row 0 = header, Row 1 = angle names
-    const headerRow  = data[0];  // index 0
-    const angleRow   = data[1];  // index 1
+    const headerRow = data[0];
+    const angleRow  = data[1];
 
-    // Hero fabric info from col E header (index 4)
-    // Handles:
-    //   "All Modern Hero Fabric 2393-83 Lena Sand"  (SKU then name)
-    //   "Hero Fabric Mina Sterling 2503-93"          (name then SKU)
-    const heroHeader = headerRow[4] || '';
+    // Auto-detect hero fabric column (contains "Hero Fabric")
+    const heroColIdx = headerRow.findIndex(c => c && String(c).match(/Hero Fabric/i));
+    if (heroColIdx === -1) throw new Error('Не знайдено колонку "Hero Fabric" у першому рядку!');
+
+    // Auto-detect additional fabrics column (contains "Remaining")
+    const addColIdx  = headerRow.findIndex(c => c && String(c).match(/Remaining/i));
+    if (addColIdx === -1) throw new Error('Не знайдено колонку "Remaining..." у першому рядку!');
+
+    // Parse hero fabric SKU and name
+    // Handles: "Hero Fabric Mina Sterling 2503-93"   → name before SKU
+    //          "All Modern Hero Fabric 2393-83 Lena Sand" → SKU before name
+    const heroHeader = String(headerRow[heroColIdx]);
     let heroSku, heroName;
     const heroMatchEnd = heroHeader.match(/Hero Fabric\s+(.+?)\s+(\d{4}-\d+)\s*$/i);
     const heroMatchMid = heroHeader.match(/(\d{4}-\d+)\s+(.+)$/);
@@ -581,26 +588,30 @@ function processFiles() {
       heroSku  = heroMatchMid[1].trim();
       heroName = heroMatchMid[2].trim();
     } else {
-      heroSku  = '2393-83';
-      heroName = 'Lena Sand';
+      throw new Error(`Не вдалось розпізнати SKU з заголовку: "${heroHeader}"`);
     }
     const heroFull = `${heroSku} ${heroName}`;
 
-    // Additional collection name from col L header (index 11)
+    // Parse additional collection name
     // Handles: "Remaining All Modern Fabric List" → "All Modern"
     //          "Remaining Carolina Uph Studio Fabrics" → "Carolina Uph Studio"
-    const addHeader   = headerRow[11] || '';
+    const addHeader   = String(headerRow[addColIdx]);
     const addColMatch = addHeader.match(/Remaining\s+(.+?)\s+Fabric(?:s|\s+List)?$/i);
     const addCollName = addColMatch ? addColMatch[1].trim() : 'All Modern';
 
-    log('info', `Hero fabric: ${heroFull}`);
-    log('info', `Additional collection: ${addCollName}`);
+    log('info', `Hero fabric col: ${heroColIdx+1} → ${heroFull}`);
+    log('info', `Additional col: ${addColIdx+1} → ${addCollName}`);
 
-    // Angle columns (0-indexed): hero E(4)-K(10), additional L(11)-N(13)
+    // Detect hero angle columns: from heroColIdx up to (but not including) addColIdx
+    // Detect additional angle columns: from addColIdx onwards (where angleRow has values)
     const heroAngleCols = {};
     const addAngleCols  = {};
-    [4,5,6,7,8,9,10].forEach(i => { if (angleRow[i]) heroAngleCols[i] = String(angleRow[i]).trim(); });
-    [11,12,13].forEach(i => { if (angleRow[i]) addAngleCols[i]  = String(angleRow[i]).trim(); });
+    for (let i = heroColIdx; i < addColIdx; i++) {
+      if (angleRow[i] && String(angleRow[i]).trim()) heroAngleCols[i] = String(angleRow[i]).trim();
+    }
+    for (let i = addColIdx; i < addColIdx + 5; i++) {
+      if (angleRow[i] && String(angleRow[i]).trim()) addAngleCols[i] = String(angleRow[i]).trim();
+    }
 
     log('dim', `Hero angles: ${Object.values(heroAngleCols).join(', ')}`);
     log('dim', `Add angles: ${Object.values(addAngleCols).join(', ')}`);
