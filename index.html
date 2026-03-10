@@ -696,7 +696,7 @@ function processFiles() {
         const nHero  = m.heroAngles.length;
         const items  = Array(nHero).fill(PRICE_CODE).join(', ') + ', ';
         const msg    = `В неймінгу задачі СКУ моделі і текстури яка потрібна. Кількість рендерів: ${nHero}\nРакурси які потрібні:\n` + m.heroAngles.map(a => `- ${a}`).join('\n');
-        csvRows.push([`${m.collection} ${m.sku} // ${heroFull} Draping`, '', msg, '', heroSku, items, '']);
+        csvRows.push([`${m.collection} ${m.sku} // ${heroFull} Draping`, '', msg, '', heroSku + ', Silo scene', items, '']);
       }
       // Additional fabrics row
       if (m.addAngles.length) {
@@ -704,7 +704,7 @@ function processFiles() {
         const items  = Array(n).fill(PRICE_CODE).join(', ') + ', ';
         const skus   = addFabrics.join(', ');
         const msg    = `В неймінгу задачі СКУ моделі яка потрібна. Кількість рендерів: ${n}\nРакурси які потрібні:\n` + m.addAngles.map(a => `- ${a}`).join('\n') + '\n';
-        csvRows.push([`${m.collection} ${m.sku} // ${addCollName} Fabric Draping`, '', msg, '', skus, items, '']);
+        csvRows.push([`${m.collection} ${m.sku} // ${addCollName} Fabric Draping`, '', msg, '', skus + ', Silo scene', items, '']);
       }
     }
 
