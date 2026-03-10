@@ -393,6 +393,32 @@
     animation: spin .7s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  .prog-step {
+    font-size: 12px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    transition: all .3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .prog-step.done {
+    background: rgba(79,255,176,.07);
+    border-color: rgba(79,255,176,.3);
+    color: var(--success);
+    opacity: 1 !important;
+  }
+  .prog-step.active {
+    background: rgba(124,110,255,.1);
+    border-color: rgba(124,110,255,.4);
+    color: var(--text);
+    opacity: 1 !important;
+  }
 </style>
 </head>
 <body>
@@ -487,12 +513,25 @@
         </div>
       </div>
 
+      <!-- Progress steps shown during upload -->
+      <div id="upload-progress" style="display:none;margin-top:16px;">
+        <div id="prog-step1" class="prog-step">⏳ Створюємо таблицю...</div>
+        <div id="prog-step2" class="prog-step" style="opacity:.3">⏳ Записуємо дані...</div>
+        <div id="prog-step3" class="prog-step" style="opacity:.3">⏳ Форматуємо...</div>
+      </div>
+
       <div class="result-box" id="result-box">
-        <div class="result-title">✅ Spreadsheet створено!</div>
+        <div class="result-title">✅ Нову таблицю створено!</div>
+        <div id="result-name" style="font-family:Unbounded,sans-serif;font-size:12px;color:var(--muted);margin-bottom:6px;"></div>
         <div class="result-url" id="result-url"></div>
-        <a id="btn-open" href="#" target="_blank" class="btn btn-success">
-          📊 Відкрити Google Spreadsheet →
-        </a>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px;">
+          <a id="btn-open" href="#" target="_blank" class="btn btn-success">
+            📊 Відкрити Google Spreadsheet →
+          </a>
+          <button onclick="resetForNewFile()" class="btn btn-outline" style="font-size:12px;">
+            🔄 Завантажити інший файл
+          </button>
+        </div>
       </div>
     </div>
 
@@ -542,6 +581,13 @@ function loadFile(file, type) {
       document.getElementById('zone-vlr').classList.add('loaded');
       document.getElementById('fname-vlr').textContent = file.name;
     }
+    // When a new file is loaded, clear any previous result so user isn't confused
+    document.getElementById('result-box').classList.remove('show');
+    document.getElementById('upload-progress').style.display = 'none';
+    document.getElementById('result-url').innerHTML = '';
+    document.getElementById('btn-open').href = '#';
+    document.getElementById('result-name').textContent = '';
+
     if (drapingWb && vlrWb) {
       document.getElementById('btn-process').disabled = false;
     }
@@ -725,19 +771,49 @@ window.addEventListener('load', () => {
   }
 });
 
+function progStep(id, state) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'prog-step ' + state;
+  const icons = { active: '⏳', done: '✅', error: '❌' };
+  el.textContent = icons[state] + ' ' + el.textContent.replace(/^[^ ]+ /, '');
+}
+
 async function uploadToSheets() {
   const btn = document.getElementById('btn-auth');
+  const googleSvg = '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Увійти через Google';
+
+  // Reset any previous result
+  const resultBox = document.getElementById('result-box');
+  resultBox.classList.remove('show');
+  document.getElementById('result-url').innerHTML = '';
+  document.getElementById('btn-open').href = '#';
+  document.getElementById('result-name').textContent = '';
+
+  // Show progress panel, reset steps
+  const progress = document.getElementById('upload-progress');
+  progress.style.display = 'block';
+  ['prog-step1','prog-step2','prog-step3'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    el.className = 'prog-step';
+    el.style.opacity = i === 0 ? '1' : '.3';
+    const labels = ['Створюємо таблицю...','Записуємо дані...','Форматуємо...'];
+    el.textContent = '⏳ ' + labels[i];
+  });
+
   btn.disabled = true;
-  btn.innerHTML = '<div id="spinner" style="display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:#333;border-radius:50%;animation:spin .7s linear infinite"></div> Створюємо...';
+  btn.innerHTML = '⏳ Зачекайте...';
 
   try {
     // Determine spreadsheet name
     const firstRow = csvRows[1] || [];
     const nameMatch = (firstRow[0] || '').match(/^(.+?) Collection/);
-    const baseName  = nameMatch ? nameMatch[1] : 'All Modern';
+    const baseName  = nameMatch ? nameMatch[1] : 'Batch';
     const ssName    = `${baseName} Collection_batch`;
 
-    // 1. Create spreadsheet
+    // STEP 1 — Create spreadsheet
+    document.getElementById('prog-step1').className = 'prog-step active';
+    document.getElementById('prog-step1').textContent = '⏳ Створюємо таблицю...';
     const createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
@@ -745,18 +821,27 @@ async function uploadToSheets() {
     });
     const ss = await createRes.json();
     if (!ss.spreadsheetId) throw new Error(JSON.stringify(ss));
-
     const ssId  = ss.spreadsheetId;
     const ssUrl = ss.spreadsheetUrl;
+    document.getElementById('prog-step1').className = 'prog-step done';
+    document.getElementById('prog-step1').textContent = '✅ Таблицю створено: ' + ssName;
 
-    // 2. Write data
+    // STEP 2 — Write data
+    document.getElementById('prog-step2').style.opacity = '1';
+    document.getElementById('prog-step2').className = 'prog-step active';
+    document.getElementById('prog-step2').textContent = `⏳ Записуємо ${csvRows.length - 1} рядків...`;
     await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${ssId}/values/A1?valueInputOption=RAW`, {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ values: csvRows })
     });
+    document.getElementById('prog-step2').className = 'prog-step done';
+    document.getElementById('prog-step2').textContent = `✅ Записано ${csvRows.length - 1} рядків`;
 
-    // 3. Style header row
+    // STEP 3 — Format
+    document.getElementById('prog-step3').style.opacity = '1';
+    document.getElementById('prog-step3').className = 'prog-step active';
+    document.getElementById('prog-step3').textContent = '⏳ Форматуємо заголовок...';
     await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${ssId}:batchUpdate`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
@@ -773,21 +858,63 @@ async function uploadToSheets() {
         ]
       })
     });
+    document.getElementById('prog-step3').className = 'prog-step done';
+    document.getElementById('prog-step3').textContent = '✅ Готово!';
+
+    // Small delay so user sees all steps done before result appears
+    await new Promise(r => setTimeout(r, 400));
+    progress.style.display = 'none';
 
     // Show result
-    document.getElementById('result-box').classList.add('show');
+    resultBox.classList.add('show');
+    document.getElementById('result-name').textContent = ssName;
     document.getElementById('result-url').innerHTML = `<a href="${ssUrl}" target="_blank">${ssUrl}</a>`;
     document.getElementById('btn-open').href = ssUrl;
     document.getElementById('num3').className = 'step-num done-num';
     document.getElementById('num3').textContent = '✓';
     document.getElementById('step3').classList.add('done');
     document.getElementById('google-hint').style.display = 'none';
+    btn.innerHTML = googleSvg;
+    btn.disabled = false;
 
   } catch(err) {
-    alert('Помилка завантаження: ' + err.message);
+    // Show error in progress
+    document.querySelectorAll('.prog-step.active').forEach(el => {
+      el.className = 'prog-step error';
+      el.style.cssText += 'background:rgba(255,79,110,.07);border-color:rgba(255,79,110,.3);color:var(--error);opacity:1';
+      el.textContent = '❌ Помилка: ' + err.message;
+    });
     btn.disabled = false;
-    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Увійти через Google';
+    btn.innerHTML = googleSvg;
   }
+}
+
+// Reset UI so user can start fresh with a new file
+function resetForNewFile() {
+  // Reset files
+  drapingWb = null; vlrWb = null; csvRows = [];
+  document.getElementById('zone-draping').classList.remove('loaded');
+  document.getElementById('zone-vlr').classList.remove('loaded');
+  document.getElementById('fname-draping').textContent = '';
+  document.getElementById('fname-vlr').textContent = '';
+  document.getElementById('inp-draping').value = '';
+  document.getElementById('inp-vlr').value = '';
+  // Reset steps
+  document.getElementById('result-box').classList.remove('show');
+  document.getElementById('upload-progress').style.display = 'none';
+  document.getElementById('preview-wrap').classList.remove('show');
+  document.getElementById('log').classList.remove('show');
+  document.getElementById('log').innerHTML = '';
+  document.getElementById('preview-info').innerHTML = 'Спочатку завантажте файли...';
+  document.getElementById('btn-process').disabled = true;
+  document.getElementById('btn-auth').disabled = true;
+  document.getElementById('step2').classList.remove('active','done');
+  document.getElementById('step3').classList.remove('active','done');
+  document.getElementById('num2').className = 'step-num pending'; document.getElementById('num2').textContent = '2';
+  document.getElementById('num3').className = 'step-num pending'; document.getElementById('num3').textContent = '3';
+  document.getElementById('step1').classList.add('active');
+  document.getElementById('num1').className = 'step-num active-num';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ─── CLIENT ID MODAL ─────────────────────────────────────────────────────────
