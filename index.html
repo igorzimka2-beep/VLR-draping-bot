@@ -307,9 +307,9 @@
           <thead>
             <tr>
               <th>A — Name</th>
-              <th>C — Message</th>
-              <th>E — SKU</th>
-              <th>F — Items (count)</th>
+              <th>B — Description</th>
+              <th>D — SKU</th>
+              <th>E — Items (count)</th>
             </tr>
           </thead>
           <tbody id="preview-body"></tbody>
@@ -701,21 +701,21 @@ function processFiles() {
 
     log('ok', `✓ Тканин вибрано: ${addFabrics.length}`);
 
-    // Build rows
-    csvRows = [['Name','Description','Message','Invite','SKU','Items','Estimate Date']];
+    // Build rows — format: Name, Description(=msg), Invite, SKU, Items, Estimate Date
+    csvRows = [['Name','Description','Invite','SKU','Items','Estimate Date']];
     for (const m of models) {
       // ── Row 1: Hero ──
       if (m.heroAngles.length && heroSku) {
         const n     = m.heroAngles.length;
         const items = Array(n).fill(PRICE_CODE).join(', ') + ', ';
         const msg   = `В неймінгу задачі СКУ моделі і текстури яка потрібна. Кількість рендерів: ${n}\nРакурси які потрібні:\n` + m.heroAngles.map(a => `- ${a}`).join('\n');
-        csvRows.push([`${m.collection} ${m.sku} // ${heroFull} Draping`, '', msg, '', `${heroSku}, Silo scene`, items, '']);
+        csvRows.push([`${m.collection} ${m.sku} // ${heroFull} Draping`, msg, '', `${heroSku}, Silo scene`, items, '']);
 
         // ── Row 2: Flipped hero ──
         if (m.flippedSku) {
           const itemsF = Array(n).fill(FLIPPED_PRICE_CODE).join(', ') + ', ';
           const msgF   = `Це задача на фліпнуті картинки цієї моделі - "${m.sku}". Ракурси і текстури ті ж самі, просто фліпаємо готові рендери.\nПочинаємо після апруву основної моделі`;
-          csvRows.push([`${m.collection} ${m.flippedSku} // ${heroFull} Draping Flipped`, '', msgF, '', `${heroSku}, Silo scene`, itemsF, '']);
+          csvRows.push([`${m.collection} ${m.flippedSku} // ${heroFull} Draping Flipped`, msgF, '', `${heroSku}, Silo scene`, itemsF, '']);
         }
       }
       // ── Row 3: Additional fabrics (original SKU) ──
@@ -724,13 +724,13 @@ function processFiles() {
         const nTotal  = nAngles * addFabrics.length;
         const items   = Array(nTotal).fill(PRICE_CODE).join(', ') + ', ';
         const msg     = `В неймінгу задачі СКУ моделі яка потрібна. Кількість рендерів: ${nTotal}\nРакурси які потрібні:\n` + m.addAngles.map(a => `- ${a}`).join('\n') + `\nТут починаємо після апруву основної тканини, потрібно стартанути і поставити задачу в паузу`;
-        csvRows.push([`${m.collection} ${m.sku} // ${addCollName} Fabric Draping`, '', msg, '', `${addFabrics.join(', ')}, Silo scene`, items, '']);
+        csvRows.push([`${m.collection} ${m.sku} // ${addCollName} Fabric Draping`, msg, '', `${addFabrics.join(', ')}, Silo scene`, items, '']);
 
         // ── Row 4: Additional fabrics flipped ──
         if (m.flippedSku) {
           const itemsF = Array(nTotal).fill(FLIPPED_PRICE_CODE).join(', ') + ', ';
           const msgF   = `Це задача на фліпнуті картинки цієї моделі - "${m.sku}". Ракурси і текстури ті ж самі, просто фліпаємо готові рендери.\nПочинаємо після апруву основної моделі`;
-          csvRows.push([`${m.collection} ${m.flippedSku} // ${addCollName} Fabric Draping Flipped`, '', msgF, '', `${addFabrics.join(', ')}, Silo scene`, itemsF, '']);
+          csvRows.push([`${m.collection} ${m.flippedSku} // ${addCollName} Fabric Draping Flipped`, msgF, '', `${addFabrics.join(', ')}, Silo scene`, itemsF, '']);
         }
       }
     }
@@ -754,17 +754,16 @@ function renderPreview(rows) {
   tbody.innerHTML = '';
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
-    const count384 = (r[5].match(/384257/g) || []).length;
-    const count402 = (r[5].match(/402744/g) || []).length;
-    const total = count384 * 7 + count402 * 2;
+    const count384 = (r[4].match(/384257/g) || []).length;
+    const count402 = (r[4].match(/402744/g) || []).length;
     const priceStr = count402 > 0
       ? `${count402}× $2 = $${count402*2}`
       : `${count384}× $7 = $${count384*7}`;
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="td-name">${esc(r[0])}</td>
-      <td class="td-msg">${esc(r[2].substring(0,80))}${r[2].length>80?'…':''}</td>
-      <td class="td-sku">${esc((r[4]||'').substring(0,60))}${(r[4]||'').length>60?'…':''}</td>
+      <td class="td-msg">${esc(r[1].substring(0,80))}${r[1].length>80?'…':''}</td>
+      <td class="td-sku">${esc((r[3]||'').substring(0,60))}${(r[3]||'').length>60?'…':''}</td>
       <td class="td-price">${priceStr}</td>
     `;
     tbody.appendChild(tr);
