@@ -199,7 +199,6 @@
     border-style: solid;
     background: rgba(79,255,176,.04);
   }
-  .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
   .drop-icon { font-size: 24px; margin-bottom: 8px; }
   .drop-label {
     font-size: 11px;
@@ -510,26 +509,28 @@
       </div>
 
       <div class="drop-grid">
-        <div class="drop-zone" id="zone-draping" onclick="document.getElementById('inp-draping').click()">
-          <input type="file" id="inp-draping" accept=".xlsx,.xls">
+        <div class="drop-zone" id="zone-draping">
           <div class="drop-icon">📐</div>
           <div class="drop-label">
             <strong>Draping Worksheet</strong>
-            <span id="fname-draping-placeholder">Перетягніть або оберіть .xlsx</span>
+            <span id="fname-draping-placeholder">Натисніть або перетягніть .xlsx</span>
           </div>
           <div class="file-name" id="fname-draping"></div>
         </div>
 
-        <div class="drop-zone" id="zone-vlr" onclick="document.getElementById('inp-vlr').click()">
-          <input type="file" id="inp-vlr" accept=".xlsx,.xls">
+        <div class="drop-zone" id="zone-vlr">
           <div class="drop-icon">🎨</div>
           <div class="drop-label">
             <strong>VLR Fabric File</strong>
-            <span id="fname-vlr-placeholder">Перетягніть або оберіть .xlsx</span>
+            <span id="fname-vlr-placeholder">Натисніть або перетягніть .xlsx</span>
           </div>
           <div class="file-name" id="fname-vlr"></div>
         </div>
       </div>
+
+      <!-- Hidden file inputs outside drop zones to avoid event conflicts -->
+      <input type="file" id="inp-draping" accept=".xlsx,.xls" style="display:none">
+      <input type="file" id="inp-vlr"     accept=".xlsx,.xls" style="display:none">
 
       <button class="btn btn-primary" id="btn-process" disabled onclick="processFiles()">
         <div id="spinner"></div>
@@ -618,14 +619,24 @@ let csvRows = [];
 let accessToken = null;
 
 // ─── FILE INPUT HANDLERS ─────────────────────────────────────────────────────
-document.getElementById('inp-draping').addEventListener('change', e => loadFile(e.target.files[0], 'draping'));
-document.getElementById('inp-vlr').addEventListener('change',    e => loadFile(e.target.files[0], 'vlr'));
+['draping', 'vlr'].forEach(id => {
+  const zone  = document.getElementById('zone-' + id);
+  const input = document.getElementById('inp-' + id);
 
-// Drag-and-drop
-['draping','vlr'].forEach(id => {
-  const zone = document.getElementById('zone-'+id);
-  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
-  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  // Click on zone → open file picker
+  zone.addEventListener('click', () => {
+    input.value = ''; // reset so same file can be re-selected
+    input.click();
+  });
+
+  // File selected via picker
+  input.addEventListener('change', e => {
+    if (e.target.files[0]) loadFile(e.target.files[0], id);
+  });
+
+  // Drag-and-drop
+  zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', e => { if (!zone.contains(e.relatedTarget)) zone.classList.remove('dragover'); });
   zone.addEventListener('drop', e => {
     e.preventDefault();
     zone.classList.remove('dragover');
