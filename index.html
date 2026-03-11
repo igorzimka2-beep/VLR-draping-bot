@@ -624,10 +624,8 @@ let accessToken = null;
 
   // File selected via native picker
   input.addEventListener('change', e => {
-    if (e.target.files[0]) {
-      input.value = '';
-      loadFile(e.target.files[0], id);
-    }
+    const file = e.target.files[0];
+    if (file) loadFile(file, id);
   });
 
   // Drag-and-drop — handle on zone, prevent input from stealing drop
