@@ -515,7 +515,7 @@
           <div class="drop-icon">📐</div>
           <div class="drop-label">
             <strong>Draping Worksheet</strong>
-            Binford_AM2571_Draping...xlsx
+            <span id="fname-draping-placeholder">Перетягніть або оберіть .xlsx</span>
           </div>
           <div class="file-name" id="fname-draping"></div>
         </div>
@@ -525,7 +525,7 @@
           <div class="drop-icon">🎨</div>
           <div class="drop-label">
             <strong>VLR Fabric File</strong>
-            VLR_Fabric_File_for_CGI.xlsx
+            <span id="fname-vlr-placeholder">Перетягніть або оберіть .xlsx</span>
           </div>
           <div class="file-name" id="fname-vlr"></div>
         </div>
@@ -644,17 +644,35 @@ function loadFile(file, type) {
       drapingWb = wb;
       document.getElementById('zone-draping').classList.add('loaded');
       document.getElementById('fname-draping').textContent = file.name;
+      const ph1 = document.getElementById('fname-draping-placeholder');
+      if (ph1) ph1.style.display = 'none';
     } else {
       vlrWb = wb;
       document.getElementById('zone-vlr').classList.add('loaded');
       document.getElementById('fname-vlr').textContent = file.name;
+      const ph2 = document.getElementById('fname-vlr-placeholder');
+      if (ph2) ph2.style.display = 'none';
     }
-    // When a new file is loaded, clear any previous result so user isn't confused
+
+    // Reset all previous results and processing state
+    csvRows = [];
     document.getElementById('result-box').classList.remove('show');
     document.getElementById('upload-progress').style.display = 'none';
     document.getElementById('result-url').innerHTML = '';
     document.getElementById('btn-open').href = '#';
     document.getElementById('result-name').textContent = '';
+    document.getElementById('log').innerHTML = '';
+    document.getElementById('log').classList.remove('show');
+    document.getElementById('preview-wrap').classList.remove('show');
+    document.getElementById('preview-info').innerHTML = 'Спочатку завантажте файли...';
+    document.getElementById('step2').classList.remove('active', 'done');
+    document.getElementById('step3').classList.remove('active', 'done');
+    document.getElementById('num2').className = 'step-num pending';
+    document.getElementById('num2').textContent = '2';
+    document.getElementById('num3').className = 'step-num pending';
+    document.getElementById('num3').textContent = '3';
+    document.getElementById('btn-auth').disabled = true;
+    document.getElementById('btn-process').disabled = true;
 
     if (drapingWb && vlrWb) {
       document.getElementById('btn-process').disabled = false;
@@ -1101,6 +1119,10 @@ function resetForNewFile() {
   document.getElementById('zone-vlr').classList.remove('loaded');
   document.getElementById('fname-draping').textContent = '';
   document.getElementById('fname-vlr').textContent = '';
+  const ph1 = document.getElementById('fname-draping-placeholder');
+  const ph2 = document.getElementById('fname-vlr-placeholder');
+  if (ph1) ph1.style.display = '';
+  if (ph2) ph2.style.display = '';
   document.getElementById('inp-draping').value = '';
   document.getElementById('inp-vlr').value = '';
   // Reset steps
