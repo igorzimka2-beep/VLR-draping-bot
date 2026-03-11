@@ -394,6 +394,74 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* Fabric Picker Modal */
+  .fabric-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.85);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    animation: fadeIn .2s ease;
+  }
+  .fabric-modal {
+    background: #111118;
+    border: 1px solid #2a2a3a;
+    border-radius: 20px;
+    padding: 28px;
+    max-width: 560px; width: 100%;
+    max-height: 80vh;
+    display: flex; flex-direction: column;
+    gap: 16px;
+  }
+  .fabric-modal-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 15px; font-weight: 700;
+    color: var(--text);
+  }
+  .fabric-modal-subtitle {
+    font-size: 11px; color: var(--muted); margin-top: -8px; line-height: 1.6;
+  }
+  .fabric-search {
+    background: #0d0d14;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    outline: none;
+    width: 100%;
+    transition: border-color .2s;
+  }
+  .fabric-search:focus { border-color: var(--accent); }
+  .fabric-list {
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 340px;
+  }
+  .fabric-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all .15s;
+    background: var(--surface2);
+  }
+  .fabric-item:hover { border-color: rgba(124,110,255,.4); background: rgba(124,110,255,.07); }
+  .fabric-item.selected { border-color: var(--accent); background: rgba(124,110,255,.12); }
+  .fabric-sku {
+    font-size: 12px; color: var(--accent); font-weight: 500; min-width: 70px;
+  }
+  .fabric-name { font-size: 12px; color: var(--text); }
+  .fabric-sheet { font-size: 10px; color: var(--muted); margin-left: auto; }
+  .fabric-modal-footer {
+    display: flex; gap: 10px; padding-top: 4px; border-top: 1px solid var(--border);
+  }
+
   .prog-step {
     font-size: 12px;
     padding: 8px 14px;
@@ -608,6 +676,15 @@ function processFiles() {
     const ws = drapingWb.Sheets[drapingWb.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
 
+    // Pre-build VLR sheets index: { sheetName: [{sku, name}, ...] }
+    const vlrSheets = {};
+    for (const sName of vlrWb.SheetNames) {
+      const sData = XLSX.utils.sheet_to_json(vlrWb.Sheets[sName], { header: 1, defval: null });
+      vlrSheets[sName] = sData.slice(1)
+        .filter(r => r[0])
+        .map(r => ({ sku: String(r[0]).trim(), name: String(r[1] || '').trim() }));
+    }
+
     // Row 0 = header, Row 1 = angle names
     const headerRow = data[0];
     const angleRow  = data[1];
@@ -621,8 +698,9 @@ function processFiles() {
     if (addColIdx === -1) throw new Error('Не знайдено колонку "Remaining..." у першому рядку!');
 
     // Parse hero fabric SKU and name
-    // Handles: "Hero Fabric Mina Sterling 2503-93"   → name before SKU
+    // Handles: "Hero Fabric Mina Sterling 2503-93"        → name before SKU
     //          "All Modern Hero Fabric 2393-83 Lena Sand" → SKU before name
+    //          "Birch Lane WF2571 Hero Fabric "            → no fabric SKU in header
     const heroHeader = String(headerRow[heroColIdx]);
     let heroSku, heroName;
     const heroMatchEnd = heroHeader.match(/Hero Fabric\s+(.+?)\s+(\d{4}-\d+)\s*$/i);
@@ -634,13 +712,21 @@ function processFiles() {
       heroSku  = heroMatchMid[1].trim();
       heroName = heroMatchMid[2].trim();
     } else {
-      throw new Error(`Не вдалось розпізнати SKU з заголовку: "${heroHeader}"`);
+      // No fabric SKU in header — ask user to pick from VLR list
+      setSpinner(false);
+      const picked = await showFabricPicker(heroHeader, vlrSheets);
+      if (!picked) throw new Error('Вибір тканини скасовано');
+      heroSku  = picked.sku;
+      heroName = picked.name;
+      setSpinner(true);
+      log('ok', `✓ Обрано тканину: ${heroSku} ${heroName}`);
     }
     const heroFull = `${heroSku} ${heroName}`;
 
     // Parse additional collection name
     // Handles: "Remaining All Modern Fabric List" → "All Modern"
     //          "Remaining Carolina Uph Studio Fabrics" → "Carolina Uph Studio"
+    //          "Remaining Birch Lane Fabric List" → "Birch Lane"
     const addHeader   = String(headerRow[addColIdx]);
     const addColMatch = addHeader.match(/Remaining\s+(.+?)\s+Fabric(?:s|\s+List)?$/i);
     const addCollName = addColMatch ? addColMatch[1].trim() : 'All Modern';
@@ -662,12 +748,18 @@ function processFiles() {
     log('dim', `Hero angles: ${Object.values(heroAngleCols).join(', ')}`);
     log('dim', `Add angles: ${Object.values(addAngleCols).join(', ')}`);
 
+    // Auto-detect SKU column: find "SKU Number" in header row, fallback to col index 1
+    const skuColIdx = headerRow.findIndex(c => c && String(c).match(/SKU Number/i));
+    const modelSkuCol = skuColIdx !== -1 ? skuColIdx : 1;
+    log('dim', `Model SKU column: ${modelSkuCol+1}`);
+
     // Parse model rows (from row index 2 onwards)
     const models = [];
     for (let i = 2; i < data.length; i++) {
       const row = data[i];
-      const collection = row[0], sku = row[1];
-      if (!collection || !sku) continue;
+      const collection = row[0];
+      const sku = row[modelSkuCol];
+      if (!collection || !sku || String(collection).match(/^(Collection|SKU)$/i)) continue;
       const heroAngles = Object.entries(heroAngleCols)
         .filter(([idx]) => row[idx] && String(row[idx]).trim().toLowerCase() === 'yes')
         .map(([, name]) => name);
@@ -679,10 +771,12 @@ function processFiles() {
     log('ok', `✓ Знайдено моделей: ${models.length}`);
 
     // Get VLR fabrics for the additional collection
-    const vlrSheet = vlrWb.Sheets[addCollName] || vlrWb.Sheets[vlrWb.SheetNames[0]];
-    const vlrData  = XLSX.utils.sheet_to_json(vlrSheet, { header: 1, defval: null });
-    const addFabrics = vlrData.slice(1)
-      .map(r => r[0] ? String(r[0]).trim() : null)
+    // Find best matching sheet by name
+    const vlrSheetKey = Object.keys(vlrSheets).find(s => s.toLowerCase() === addCollName.toLowerCase())
+                     || Object.keys(vlrSheets).find(s => s.toLowerCase().includes(addCollName.toLowerCase()))
+                     || vlrWb.SheetNames[0];
+    const addFabrics = (vlrSheets[vlrSheetKey] || [])
+      .map(r => r.sku)
       .filter(f => f && f !== heroSku);
 
     log('ok', `✓ Тканин у ${addCollName}: ${addFabrics.length} (hero виключено)`);
@@ -778,6 +872,116 @@ function progStep(id, state) {
   const icons = { active: '⏳', done: '✅', error: '❌' };
   el.textContent = icons[state] + ' ' + el.textContent.replace(/^[^ ]+ /, '');
 }
+
+// ─── FABRIC PICKER MODAL ─────────────────────────────────────────────────────
+function showFabricPicker(heroHeader, vlrSheets) {
+  return new Promise((resolve) => {
+    // Extract suggested sheet from header
+    const heroCollMatch = heroHeader.match(/^(.+?)\s+\w+\d+\s+Hero Fabric/i)
+                       || heroHeader.match(/^(.+?)\s+Hero Fabric/i);
+    const heroCollName  = heroCollMatch ? heroCollMatch[1].trim() : null;
+    const suggestedSheet = heroCollName
+      ? Object.keys(vlrSheets).find(s => s.toLowerCase().includes(heroCollName.toLowerCase()))
+      : null;
+
+    // Build flat list of all fabrics with sheet names
+    const allFabrics = [];
+    for (const [sheet, fabrics] of Object.entries(vlrSheets)) {
+      for (const f of fabrics) {
+        allFabrics.push({ ...f, sheet });
+      }
+    }
+
+    // Suggested fabrics first (matching sheet), rest after
+    const sorted = [
+      ...allFabrics.filter(f => f.sheet === suggestedSheet),
+      ...allFabrics.filter(f => f.sheet !== suggestedSheet),
+    ];
+
+    let selectedIdx = 0; // pre-select first item
+
+    const overlay = document.createElement('div');
+    overlay.className = 'fabric-modal-overlay';
+
+    const renderList = (filter = '') => {
+      const q = filter.toLowerCase();
+      return sorted
+        .filter(f => !q || f.sku.toLowerCase().includes(q) || f.name.toLowerCase().includes(q) || f.sheet.toLowerCase().includes(q))
+        .map((f, i) => `
+          <div class="fabric-item ${i === 0 && !q ? 'selected' : ''}"
+               data-sku="${f.sku}" data-name="${f.name}" data-i="${i}"
+               onclick="pickFabricItem(this)">
+            <span class="fabric-sku">${f.sku}</span>
+            <span class="fabric-name">${f.name}</span>
+            <span class="fabric-sheet">${f.sheet}</span>
+          </div>
+        `).join('');
+    };
+
+    overlay.innerHTML = `
+      <div class="fabric-modal">
+        <div>
+          <div class="fabric-modal-title">🎨 Оберіть hero тканину</div>
+          <div class="fabric-modal-subtitle">
+            Заголовок "<b>${heroHeader.trim()}</b>" не містить SKU тканини.<br>
+            ${suggestedSheet ? `Показано тканини <b>${suggestedSheet}</b> першими.` : 'Оберіть тканину зі списку.'}
+          </div>
+        </div>
+        <input class="fabric-search" id="fabric-search-input" placeholder="🔍 Пошук за SKU або назвою..." oninput="filterFabrics(this.value)" autocomplete="off">
+        <div class="fabric-list" id="fabric-list">${renderList()}</div>
+        <div class="fabric-modal-footer">
+          <button class="btn btn-primary" style="flex:1" onclick="confirmFabricPick()">✅ Підтвердити</button>
+          <button class="btn btn-outline" onclick="cancelFabricPick()">Скасувати</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    document.getElementById('fabric-search-input').focus();
+
+    // Store context on window for event handlers
+    window._fabricPickerResolve = resolve;
+    window._fabricPickerOverlay = overlay;
+    window._fabricPickerSorted  = sorted;
+    window._fabricPickerSelected = sorted[0] || null;
+  });
+}
+
+window.filterFabrics = function(q) {
+  const list = document.getElementById('fabric-list');
+  if (!list) return;
+  const lower = q.toLowerCase();
+  const filtered = window._fabricPickerSorted.filter(f =>
+    !lower || f.sku.toLowerCase().includes(lower) || f.name.toLowerCase().includes(lower) || f.sheet.toLowerCase().includes(lower)
+  );
+  list.innerHTML = filtered.map((f, i) => `
+    <div class="fabric-item ${i === 0 ? 'selected' : ''}"
+         data-sku="${f.sku}" data-name="${f.name}"
+         onclick="pickFabricItem(this)">
+      <span class="fabric-sku">${f.sku}</span>
+      <span class="fabric-name">${f.name}</span>
+      <span class="fabric-sheet">${f.sheet}</span>
+    </div>
+  `).join('');
+  window._fabricPickerSelected = filtered[0] || null;
+};
+
+window.pickFabricItem = function(el) {
+  document.querySelectorAll('.fabric-item').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  window._fabricPickerSelected = { sku: el.dataset.sku, name: el.dataset.name };
+};
+
+window.confirmFabricPick = function() {
+  const picked = window._fabricPickerSelected;
+  if (!picked) return;
+  window._fabricPickerOverlay.remove();
+  window._fabricPickerResolve(picked);
+};
+
+window.cancelFabricPick = function() {
+  window._fabricPickerOverlay.remove();
+  window._fabricPickerResolve(null);
+};
 
 async function uploadToSheets() {
   const btn = document.getElementById('btn-auth');
