@@ -188,7 +188,6 @@
     transition: all .2s;
     background: var(--surface2);
     position: relative;
-    overflow: hidden;
   }
   .drop-zone:hover, .drop-zone.dragover {
     border-color: var(--accent);
@@ -510,6 +509,8 @@
 
       <div class="drop-grid">
         <div class="drop-zone" id="zone-draping">
+          <input type="file" id="inp-draping" accept=".xlsx,.xls"
+            style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;">
           <div class="drop-icon">📐</div>
           <div class="drop-label">
             <strong>Draping Worksheet</strong>
@@ -519,6 +520,8 @@
         </div>
 
         <div class="drop-zone" id="zone-vlr">
+          <input type="file" id="inp-vlr" accept=".xlsx,.xls"
+            style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;">
           <div class="drop-icon">🎨</div>
           <div class="drop-label">
             <strong>VLR Fabric File</strong>
@@ -527,10 +530,6 @@
           <div class="file-name" id="fname-vlr"></div>
         </div>
       </div>
-
-      <!-- Hidden file inputs outside drop zones to avoid event conflicts -->
-      <input type="file" id="inp-draping" accept=".xlsx,.xls" style="display:none">
-      <input type="file" id="inp-vlr"     accept=".xlsx,.xls" style="display:none">
 
       <button class="btn btn-primary" id="btn-process" disabled onclick="processFiles()">
         <div id="spinner"></div>
@@ -623,22 +622,26 @@ let accessToken = null;
   const zone  = document.getElementById('zone-' + id);
   const input = document.getElementById('inp-' + id);
 
-  // Click on zone → open file picker
-  zone.addEventListener('click', () => {
-    input.value = ''; // reset so same file can be re-selected
-    input.click();
-  });
-
-  // File selected via picker
+  // File selected via native picker
   input.addEventListener('change', e => {
-    if (e.target.files[0]) loadFile(e.target.files[0], id);
+    if (e.target.files[0]) {
+      input.value = '';
+      loadFile(e.target.files[0], id);
+    }
   });
 
-  // Drag-and-drop
-  zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('dragover'); });
-  zone.addEventListener('dragleave', e => { if (!zone.contains(e.relatedTarget)) zone.classList.remove('dragover'); });
+  // Drag-and-drop — handle on zone, prevent input from stealing drop
+  zone.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    zone.classList.add('dragover');
+  });
+  zone.addEventListener('dragleave', e => {
+    if (!zone.contains(e.relatedTarget)) zone.classList.remove('dragover');
+  });
   zone.addEventListener('drop', e => {
     e.preventDefault();
+    e.stopPropagation();
     zone.classList.remove('dragover');
     const file = e.dataTransfer.files[0];
     if (file) loadFile(file, id);
