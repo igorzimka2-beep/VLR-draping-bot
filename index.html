@@ -19,303 +19,73 @@
     --success: #4fffb0;
     --error: #ff4f6e;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'DM Mono', monospace;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Animated grid background */
+  body { font-family: 'DM Mono', monospace; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
   body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(124,110,255,.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(124,110,255,.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(124,110,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(124,110,255,.04) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0;
   }
+  .glow-orb { position: fixed; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(124,110,255,.12) 0%, transparent 70%); top: -200px; right: -200px; pointer-events: none; z-index: 0; animation: orbFloat 8s ease-in-out infinite; }
+  .glow-orb2 { position: fixed; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(255,110,156,.08) 0%, transparent 70%); bottom: -100px; left: -100px; pointer-events: none; z-index: 0; animation: orbFloat 11s ease-in-out infinite reverse; }
+  @keyframes orbFloat { 0%,100% { transform: translate(0,0); } 50% { transform: translate(30px,30px); } }
 
-  .glow-orb {
-    position: fixed;
-    width: 600px; height: 600px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(124,110,255,.12) 0%, transparent 70%);
-    top: -200px; right: -200px;
-    pointer-events: none;
-    z-index: 0;
-    animation: orbFloat 8s ease-in-out infinite;
-  }
-  .glow-orb2 {
-    position: fixed;
-    width: 400px; height: 400px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,110,156,.08) 0%, transparent 70%);
-    bottom: -100px; left: -100px;
-    pointer-events: none;
-    z-index: 0;
-    animation: orbFloat 11s ease-in-out infinite reverse;
-  }
-  @keyframes orbFloat {
-    0%,100% { transform: translate(0,0); }
-    50% { transform: translate(30px, 30px); }
-  }
+  .container { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 60px 24px 80px; }
+  header { margin-bottom: 56px; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(124,110,255,.12); border: 1px solid rgba(124,110,255,.3); border-radius: 99px; padding: 4px 12px; font-size: 11px; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 20px; }
+  .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.4; transform:scale(.7); } }
+  h1 { font-family: 'Unbounded', sans-serif; font-size: clamp(28px,5vw,42px); font-weight: 800; line-height: 1.1; letter-spacing: -.02em; background: linear-gradient(135deg,#fff 30%,var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 12px; }
+  .subtitle { color: var(--muted); font-size: 13px; line-height: 1.7; }
 
-  .container {
-    position: relative;
-    z-index: 1;
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 60px 24px 80px;
-  }
-
-  header {
-    margin-bottom: 56px;
-  }
-
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(124,110,255,.12);
-    border: 1px solid rgba(124,110,255,.3);
-    border-radius: 99px;
-    padding: 4px 12px;
-    font-size: 11px;
-    color: var(--accent);
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    margin-bottom: 20px;
-  }
-  .badge::before {
-    content: '';
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--accent);
-    animation: pulse 2s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%,100% { opacity: 1; transform: scale(1); }
-    50% { opacity: .4; transform: scale(.7); }
-  }
-
-  h1 {
-    font-family: 'Unbounded', sans-serif;
-    font-size: clamp(28px, 5vw, 42px);
-    font-weight: 800;
-    line-height: 1.1;
-    letter-spacing: -.02em;
-    background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 12px;
-  }
-
-  .subtitle {
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.7;
-  }
-
-  /* Steps */
-  .steps {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .step {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    transition: border-color .2s;
-  }
+  .steps { display: flex; flex-direction: column; gap: 16px; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; transition: border-color .2s; }
   .step:hover { border-color: rgba(124,110,255,.4); }
   .step.active { border-color: var(--accent); }
   .step.done { border-color: rgba(79,255,176,.3); }
-
-  .step-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 18px;
-  }
-
-  .step-num {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Unbounded', sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    flex-shrink: 0;
-  }
+  .step-header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Unbounded', sans-serif; font-size: 12px; font-weight: 600; flex-shrink: 0; }
   .step-num.pending { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
   .step-num.active-num { background: var(--accent); color: #fff; box-shadow: 0 0 16px rgba(124,110,255,.5); }
   .step-num.done-num { background: rgba(79,255,176,.15); border: 1px solid rgba(79,255,176,.4); color: var(--success); }
+  .step-title { font-family: 'Unbounded', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: -.01em; }
 
-  .step-title {
-    font-family: 'Unbounded', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: -.01em;
-  }
-
-  /* File drop zones */
-  .drop-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
+  .drop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
   @media(max-width:600px) { .drop-grid { grid-template-columns: 1fr; } }
-
-  .drop-zone {
-    border: 1.5px dashed var(--border);
-    border-radius: 10px;
-    padding: 20px 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: all .2s;
-    background: var(--surface2);
-    position: relative;
-  }
-  .drop-zone:hover, .drop-zone.dragover {
-    border-color: var(--accent);
-    background: rgba(124,110,255,.06);
-  }
-  .drop-zone.loaded {
-    border-color: var(--success);
-    border-style: solid;
-    background: rgba(79,255,176,.04);
-  }
+  .drop-zone { border: 1.5px dashed var(--border); border-radius: 10px; padding: 20px 16px; text-align: center; cursor: pointer; transition: all .2s; background: var(--surface2); position: relative; }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: rgba(124,110,255,.06); }
+  .drop-zone.loaded { border-color: var(--success); border-style: solid; background: rgba(79,255,176,.04); }
   .drop-icon { font-size: 24px; margin-bottom: 8px; }
-  .drop-label {
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 1.5;
-  }
+  .drop-label { font-size: 11px; color: var(--muted); line-height: 1.5; }
   .drop-label strong { color: var(--text); display: block; font-size: 12px; margin-bottom: 4px; }
   .drop-zone.loaded .drop-label { color: var(--success); }
-  .file-name {
-    font-size: 10px;
-    color: var(--success);
-    margin-top: 6px;
-    word-break: break-all;
-    opacity: .8;
-  }
+  .file-name { font-size: 10px; color: var(--success); margin-top: 6px; word-break: break-all; opacity: .8; }
 
-  /* Buttons */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    border-radius: 10px;
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all .2s;
-    border: none;
-    letter-spacing: .02em;
-  }
-  .btn-primary {
-    background: var(--accent);
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(124,110,255,.3);
-  }
-  .btn-primary:hover:not(:disabled) {
-    background: #9488ff;
-    box-shadow: 0 4px 28px rgba(124,110,255,.5);
-    transform: translateY(-1px);
-  }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 10px; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .2s; border: none; letter-spacing: .02em; }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 20px rgba(124,110,255,.3); }
+  .btn-primary:hover:not(:disabled) { background: #9488ff; box-shadow: 0 4px 28px rgba(124,110,255,.5); transform: translateY(-1px); }
   .btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; }
-
-  .btn-google {
-    background: #fff;
-    color: #1a1a1a;
-    box-shadow: 0 2px 12px rgba(0,0,0,.3);
-  }
-  .btn-google:hover:not(:disabled) {
-    background: #f5f5f5;
-    transform: translateY(-1px);
-  }
+  .btn-google { background: #fff; color: #1a1a1a; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
+  .btn-google:hover:not(:disabled) { background: #f5f5f5; transform: translateY(-1px); }
   .btn-google:disabled { opacity: .4; cursor: not-allowed; }
-
-  .btn-outline {
-    background: transparent;
-    color: var(--accent);
-    border: 1px solid rgba(124,110,255,.4);
-  }
+  .btn-outline { background: transparent; color: var(--accent); border: 1px solid rgba(124,110,255,.4); }
   .btn-outline:hover { background: rgba(124,110,255,.08); border-color: var(--accent); }
-
-  .btn-success {
-    background: rgba(79,255,176,.15);
-    color: var(--success);
-    border: 1px solid rgba(79,255,176,.3);
-    font-size: 14px;
-    padding: 14px 28px;
-  }
+  .btn-success { background: rgba(79,255,176,.15); color: var(--success); border: 1px solid rgba(79,255,176,.3); font-size: 14px; padding: 14px 28px; }
   .btn-success:hover { background: rgba(79,255,176,.22); }
+  .btn-sm { padding: 6px 14px; font-size: 11px; border-radius: 7px; }
 
-  /* Log / preview */
-  .log {
-    background: #0d0d14;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-    font-size: 11.5px;
-    line-height: 1.8;
-    color: var(--muted);
-    max-height: 200px;
-    overflow-y: auto;
-    margin-top: 16px;
-    display: none;
-  }
+  .log { background: #0d0d14; border: 1px solid var(--border); border-radius: 10px; padding: 16px; font-size: 11.5px; line-height: 1.8; color: var(--muted); max-height: 200px; overflow-y: auto; margin-top: 16px; display: none; }
   .log.show { display: block; }
   .log .ok { color: var(--success); }
   .log .err { color: var(--error); }
   .log .info { color: var(--accent); }
   .log .dim { color: #444460; }
 
-  /* Preview table */
-  .preview-wrap {
-    overflow-x: auto;
-    margin-top: 16px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    display: none;
-  }
+  .preview-wrap { overflow-x: auto; margin-top: 16px; border-radius: 10px; border: 1px solid var(--border); display: none; }
   .preview-wrap.show { display: block; }
   table { width: 100%; border-collapse: collapse; font-size: 11px; }
-  th {
-    background: var(--surface2);
-    color: var(--muted);
-    padding: 10px 12px;
-    text-align: left;
-    font-weight: 500;
-    white-space: nowrap;
-    border-bottom: 1px solid var(--border);
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    font-size: 10px;
-  }
-  td {
-    padding: 10px 12px;
-    border-bottom: 1px solid rgba(42,42,58,.5);
-    vertical-align: top;
-    color: var(--text);
-  }
+  th { background: var(--surface2); color: var(--muted); padding: 10px 12px; text-align: left; font-weight: 500; white-space: nowrap; border-bottom: 1px solid var(--border); letter-spacing: .05em; text-transform: uppercase; font-size: 10px; }
+  td { padding: 10px 12px; border-bottom: 1px solid rgba(42,42,58,.5); vertical-align: top; color: var(--text); }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: rgba(124,110,255,.03); }
   .td-name { color: var(--accent); max-width: 260px; }
@@ -323,168 +93,95 @@
   .td-sku { color: #aaa; max-width: 180px; word-break: break-all; }
   .td-price { color: var(--success); white-space: nowrap; }
 
-  /* Result */
-  .result-box {
-    display: none;
-    background: var(--surface);
-    border: 1px solid rgba(79,255,176,.3);
-    border-radius: 16px;
-    padding: 28px;
-    text-align: center;
-    margin-top: 16px;
-  }
+  .result-box { display: none; background: var(--surface); border: 1px solid rgba(79,255,176,.3); border-radius: 16px; padding: 28px; text-align: center; margin-top: 16px; }
   .result-box.show { display: block; animation: fadeIn .4s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-  .result-title {
-    font-family: 'Unbounded', sans-serif;
-    font-size: 16px;
-    color: var(--success);
-    margin-bottom: 8px;
-  }
-  .result-url {
-    color: var(--muted);
-    font-size: 12px;
-    word-break: break-all;
-    margin-bottom: 20px;
-  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .result-title { font-family: 'Unbounded', sans-serif; font-size: 16px; color: var(--success); margin-bottom: 8px; }
+  .result-url { color: var(--muted); font-size: 12px; word-break: break-all; margin-bottom: 20px; }
   .result-url a { color: var(--accent); text-decoration: none; }
   .result-url a:hover { text-decoration: underline; }
 
-  /* Separator */
-  .sep {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--border), transparent);
-    margin: 8px 0 20px;
-  }
+  .hint { font-size: 11px; color: var(--muted); line-height: 1.6; padding: 10px 14px; background: rgba(124,110,255,.06); border-left: 2px solid var(--accent); border-radius: 0 6px 6px 0; margin-top: 12px; }
+  .row-count { display: inline-flex; align-items: center; gap: 6px; background: rgba(79,255,176,.1); border: 1px solid rgba(79,255,176,.2); border-radius: 6px; padding: 4px 10px; font-size: 11px; color: var(--success); margin-top: 10px; }
 
-  .hint {
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 1.6;
-    padding: 10px 14px;
-    background: rgba(124,110,255,.06);
-    border-left: 2px solid var(--accent);
-    border-radius: 0 6px 6px 0;
-    margin-top: 12px;
-  }
-
-  .row-count {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(79,255,176,.1);
-    border: 1px solid rgba(79,255,176,.2);
-    border-radius: 6px;
-    padding: 4px 10px;
-    font-size: 11px;
-    color: var(--success);
-    margin-top: 10px;
-  }
-
-  #spinner {
-    display: none;
-    width: 16px; height: 16px;
-    border: 2px solid rgba(255,255,255,.2);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin .7s linear infinite;
-  }
+  #spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Fabric Picker Modal */
-  .fabric-modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,.85);
-    z-index: 1000;
-    display: flex; align-items: center; justify-content: center;
-    padding: 20px;
-    animation: fadeIn .2s ease;
-  }
-  .fabric-modal {
-    background: #111118;
-    border: 1px solid #2a2a3a;
-    border-radius: 20px;
-    padding: 28px;
-    max-width: 560px; width: 100%;
-    max-height: 80vh;
-    display: flex; flex-direction: column;
-    gap: 16px;
-  }
-  .fabric-modal-title {
-    font-family: 'Unbounded', sans-serif;
-    font-size: 15px; font-weight: 700;
-    color: var(--text);
-  }
-  .fabric-modal-subtitle {
-    font-size: 11px; color: var(--muted); margin-top: -8px; line-height: 1.6;
-  }
-  .fabric-search {
-    background: #0d0d14;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    outline: none;
-    width: 100%;
-    transition: border-color .2s;
-  }
-  .fabric-search:focus { border-color: var(--accent); }
-  .fabric-list {
-    overflow-y: auto;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    max-height: 340px;
-  }
-  .fabric-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: all .15s;
-    background: var(--surface2);
-  }
-  .fabric-item:hover { border-color: rgba(124,110,255,.4); background: rgba(124,110,255,.07); }
-  .fabric-item.selected { border-color: var(--accent); background: rgba(124,110,255,.12); }
-  .fabric-sku {
-    font-size: 12px; color: var(--accent); font-weight: 500; min-width: 70px;
-  }
-  .fabric-name { font-size: 12px; color: var(--text); }
-  .fabric-sheet { font-size: 10px; color: var(--muted); margin-left: auto; }
-  .fabric-modal-footer {
-    display: flex; gap: 10px; padding-top: 4px; border-top: 1px solid var(--border);
-  }
+  .prog-step { font-size: 12px; padding: 8px 14px; border-radius: 8px; margin-bottom: 6px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); transition: all .3s ease; display: flex; align-items: center; gap: 8px; }
+  .prog-step.done { background: rgba(79,255,176,.07); border-color: rgba(79,255,176,.3); color: var(--success); opacity: 1 !important; }
+  .prog-step.active { background: rgba(124,110,255,.1); border-color: rgba(124,110,255,.4); color: var(--text); opacity: 1 !important; }
 
-  .prog-step {
-    font-size: 12px;
-    padding: 8px 14px;
-    border-radius: 8px;
-    margin-bottom: 6px;
-    background: var(--surface2);
+  /* ── FABRIC SELECTION PANEL ─────────────────────────────────────── */
+  .fabric-panel {
+    display: none;
+    margin-top: 20px;
     border: 1px solid var(--border);
-    color: var(--muted);
-    transition: all .3s ease;
+    border-radius: 14px;
+    overflow: hidden;
+    animation: fadeIn .3s ease;
+  }
+  .fabric-panel.show { display: block; }
+
+  .fp-header {
+    background: var(--surface2);
+    padding: 14px 18px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 10px;
   }
-  .prog-step.done {
-    background: rgba(79,255,176,.07);
-    border-color: rgba(79,255,176,.3);
-    color: var(--success);
-    opacity: 1 !important;
-  }
-  .prog-step.active {
-    background: rgba(124,110,255,.1);
-    border-color: rgba(124,110,255,.4);
-    color: var(--text);
-    opacity: 1 !important;
-  }
+  .fp-title { font-family: 'Unbounded', sans-serif; font-size: 12px; font-weight: 600; color: var(--text); }
+  .fp-subtitle { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .fp-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  /* Sheet tabs */
+  .sheet-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .sheet-tab { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 11px; cursor: pointer; white-space: nowrap; transition: all .15s; }
+  .sheet-tab:hover { border-color: rgba(124,110,255,.5); color: var(--text); }
+  .sheet-tab.active { border-color: var(--accent); background: rgba(124,110,255,.12); color: var(--accent); }
+
+  /* Fabric search */
+  .fp-search-row { padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; gap: 10px; align-items: center; }
+  .fp-search { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 13px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 12px; outline: none; transition: border-color .2s; }
+  .fp-search:focus { border-color: var(--accent); }
+
+  /* Fabric chips grid */
+  .fabric-grid { display: flex; flex-wrap: wrap; gap: 7px; padding: 14px 18px; max-height: 220px; overflow-y: auto; background: var(--surface); }
+  .fabric-chip { display: flex; align-items: center; gap: 7px; padding: 6px 13px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); font-size: 11px; cursor: pointer; transition: all .15s; user-select: none; }
+  .fabric-chip:hover { border-color: rgba(124,110,255,.5); background: rgba(124,110,255,.07); }
+  .fabric-chip.sel { border-color: var(--accent); background: rgba(124,110,255,.14); color: var(--accent); }
+  .chip-sku { font-weight: 500; }
+  .chip-name { color: var(--muted); font-size: 10px; }
+  .fabric-chip.sel .chip-name { color: rgba(124,110,255,.7); }
+
+  /* Hero chip — single select, pink accent */
+  .hero-chip { display:flex; align-items:center; gap:7px; padding:6px 13px; border-radius:20px; border:1px solid var(--border); background:var(--surface2); font-size:11px; cursor:pointer; transition:all .15s; user-select:none; }
+  .hero-chip:hover { border-color:rgba(255,110,156,.5); background:rgba(255,110,156,.07); }
+  .hero-chip.sel { border-color:var(--accent2); background:rgba(255,110,156,.14); color:var(--accent2); }
+  .hero-chip.sel .chip-name { color:rgba(255,110,156,.7); }
+
+  /* Footer bar */
+  .fp-footer { padding: 12px 18px; background: var(--surface2); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .fp-count { font-size: 12px; color: var(--muted); }
+  .fp-count span { color: var(--accent); font-weight: 500; }
+
+  /* ── HERO FABRIC PICKER (modal) ─────────────────────────────────── */
+  .fabric-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn .2s ease; }
+  .fabric-modal { background: #111118; border: 1px solid #2a2a3a; border-radius: 20px; padding: 28px; max-width: 560px; width: 100%; max-height: 80vh; display: flex; flex-direction: column; gap: 16px; }
+  .fabric-modal-title { font-family: 'Unbounded', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); }
+  .fabric-modal-subtitle { font-size: 11px; color: var(--muted); margin-top: -8px; line-height: 1.6; }
+  .fabric-search { background: #0d0d14; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 12px; outline: none; width: 100%; transition: border-color .2s; }
+  .fabric-search:focus { border-color: var(--accent); }
+  .fabric-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 4px; max-height: 340px; }
+  .fabric-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; transition: all .15s; background: var(--surface2); }
+  .fabric-item:hover { border-color: rgba(124,110,255,.4); background: rgba(124,110,255,.07); }
+  .fabric-item.selected { border-color: var(--accent); background: rgba(124,110,255,.12); }
+  .fabric-sku { font-size: 12px; color: var(--accent); font-weight: 500; min-width: 70px; }
+  .fabric-name { font-size: 12px; color: var(--text); }
+  .fabric-sheet { font-size: 10px; color: var(--muted); margin-left: auto; }
+  .fabric-modal-footer { display: flex; gap: 10px; padding-top: 4px; border-top: 1px solid var(--border); }
 </style>
 </head>
 <body>
@@ -509,8 +206,7 @@
 
       <div class="drop-grid">
         <div class="drop-zone" id="zone-draping">
-          <input type="file" id="inp-draping" accept=".xlsx,.xls"
-            style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;">
+          <input type="file" id="inp-draping" accept=".xlsx,.xls" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;">
           <div class="drop-icon">📐</div>
           <div class="drop-label">
             <strong>Draping Worksheet</strong>
@@ -520,8 +216,7 @@
         </div>
 
         <div class="drop-zone" id="zone-vlr">
-          <input type="file" id="inp-vlr" accept=".xlsx,.xls"
-            style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;">
+          <input type="file" id="inp-vlr" accept=".xlsx,.xls" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;">
           <div class="drop-icon">🎨</div>
           <div class="drop-label">
             <strong>VLR Fabric File</strong>
@@ -531,10 +226,66 @@
         </div>
       </div>
 
-      <button class="btn btn-primary" id="btn-process" disabled onclick="processFiles()">
-        <div id="spinner"></div>
-        <span id="btn-process-text">⚡ Обробити файли</span>
-      </button>
+      <!-- ── AUTO BAR: shown when everything is detected automatically ── -->
+      <div id="auto-detect-bar" style="display:none; margin-top:16px; padding:12px 16px; background:var(--surface2); border:1px solid rgba(79,255,176,.25); border-radius:10px; font-size:12px; color:var(--muted); align-items:center; flex-wrap:wrap; gap:10px;">
+        <span id="auto-detect-text" style="flex:1;line-height:1.6;"></span>
+        <button class="btn btn-primary btn-sm" id="btn-process" onclick="processFiles()">
+          <div id="spinner"></div>
+          <span id="btn-process-text">⚡ Обробити файли</span>
+        </button>
+      </div>
+
+      <!-- ── FABRIC PANEL: shown only when collection is unknown ── -->
+      <div class="fabric-panel" id="fabric-panel">
+
+        <!-- Hero fabric section (shown only when hero is unknown) -->
+        <div id="hero-section" style="display:none;">
+          <div class="fp-header" style="border-bottom:none;">
+            <div>
+              <div class="fp-title">⭐ Оберіть основну (hero) тканину</div>
+              <div class="fp-subtitle">SKU не знайдено автоматично — введіть або оберіть зі списку</div>
+            </div>
+          </div>
+          <div class="fp-search-row" style="border-bottom:none; padding-bottom:0;">
+            <input class="fp-search" id="hero-search" placeholder="🔍 Пошук hero тканини за SKU або назвою..." oninput="filterHeroList(this.value)" autocomplete="off">
+          </div>
+          <div id="hero-list" style="display:flex;flex-wrap:wrap;gap:7px;padding:10px 18px 14px;max-height:160px;overflow-y:auto;background:var(--surface);"></div>
+          <div style="height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:0 18px;"></div>
+        </div>
+
+        <div class="fp-header">
+          <div>
+            <div class="fp-title" id="fp-title">🧵 Оберіть колекцію тканин</div>
+            <div class="fp-subtitle" id="fp-subtitle">Не вдалося визначити колекцію автоматично — оберіть аркуш і тканини</div>
+          </div>
+          <div class="fp-actions">
+            <button class="btn btn-outline btn-sm" onclick="selectAllFabrics()">Всі</button>
+            <button class="btn btn-outline btn-sm" onclick="deselectAllFabrics()">Жодної</button>
+          </div>
+        </div>
+
+        <!-- Sheet tabs -->
+        <div class="sheet-tabs" id="sheet-tabs"></div>
+
+        <!-- Search -->
+        <div class="fp-search-row">
+          <input class="fp-search" id="fabric-search" placeholder="🔍 Пошук за SKU або назвою..." oninput="filterChips(this.value)" autocomplete="off">
+        </div>
+
+        <!-- Chips -->
+        <div class="fabric-grid" id="fabric-grid"></div>
+
+        <!-- Footer -->
+        <div class="fp-footer">
+          <div class="fp-count">Вибрано: <span id="sel-count">0</span> тканин</div>
+          <div>
+            <button class="btn btn-primary btn-sm" id="btn-process-panel" onclick="processFiles()">
+              <div id="spinner-panel" style="display:none;width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;"></div>
+              <span id="btn-process-panel-text">⚡ Обробити файли</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div class="log" id="log"></div>
     </div>
@@ -572,7 +323,7 @@
         <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">
           Авторизуйтесь у Google, щоб автоматично створити Spreadsheet та отримати посилання.
         </p>
-        <button class="btn btn-google" id="btn-auth" onclick="googleAuth()" disabled>
+        <button class="btn btn-google" id="btn-auth" onclick="triggerAuth()" disabled>
           <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
           Увійти через Google
         </button>
@@ -581,7 +332,6 @@
         </div>
       </div>
 
-      <!-- Progress steps shown during upload -->
       <div id="upload-progress" style="display:none;margin-top:16px;">
         <div id="prog-step1" class="prog-step">⏳ Створюємо таблицю...</div>
         <div id="prog-step2" class="prog-step" style="opacity:.3">⏳ Записуємо дані...</div>
@@ -593,249 +343,366 @@
         <div id="result-name" style="font-family:Unbounded,sans-serif;font-size:12px;color:var(--muted);margin-bottom:6px;"></div>
         <div class="result-url" id="result-url"></div>
         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px;">
-          <a id="btn-open" href="#" target="_blank" class="btn btn-success">
-            📊 Відкрити Google Spreadsheet →
-          </a>
-          <button onclick="resetForNewFile()" class="btn btn-outline" style="font-size:12px;">
-            🔄 Завантажити інший файл
-          </button>
+          <a id="btn-open" href="#" target="_blank" class="btn btn-success">📊 Відкрити Google Spreadsheet →</a>
+          <button onclick="resetAll()" class="btn btn-outline" style="font-size:12px;">🔄 Новий файл</button>
         </div>
       </div>
     </div>
 
-  </div>
+  </div><!-- /steps -->
 </div>
 
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-const CLIENT_ID   = ''; // paste your Google Client ID here
-const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
-const PRICE_CODE  = '384257';
+const CLIENT_ID  = '';
+const SCOPES     = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
+const PRICE_CODE = '384257';
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let drapingWb = null, vlrWb = null;
+let vlrSheets = {};
+let activeSheet = null;
+let selectedFabrics = new Set();
+let manualHeroSku = null;   // set when user picks hero manually
+let manualHeroName = null;
 let csvRows = [];
 let accessToken = null;
 
-// ─── FILE INPUT HANDLERS ─────────────────────────────────────────────────────
-['draping', 'vlr'].forEach(id => {
+// ─── FILE LOADERS ─────────────────────────────────────────────────────────────
+['draping','vlr'].forEach(id => {
   const zone  = document.getElementById('zone-' + id);
   const input = document.getElementById('inp-' + id);
-
-  // File selected via native picker
-  input.addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (file) loadFile(file, id);
-  });
-
-  // Drag-and-drop — handle on zone, prevent input from stealing drop
-  zone.addEventListener('dragover', e => {
-    e.preventDefault();
-    e.stopPropagation();
-    zone.classList.add('dragover');
-  });
-  zone.addEventListener('dragleave', e => {
-    if (!zone.contains(e.relatedTarget)) zone.classList.remove('dragover');
-  });
-  zone.addEventListener('drop', e => {
-    e.preventDefault();
-    e.stopPropagation();
-    zone.classList.remove('dragover');
-    const file = e.dataTransfer.files[0];
-    if (file) loadFile(file, id);
-  });
+  input.addEventListener('change', e => { const f = e.target.files[0]; if (f) loadFile(f, id); });
+  zone.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', e => { if (!zone.contains(e.relatedTarget)) zone.classList.remove('dragover'); });
+  zone.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); zone.classList.remove('dragover'); const f = e.dataTransfer.files[0]; if (f) loadFile(f, id); });
 });
 
 function loadFile(file, type) {
-  if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
-    const data = new Uint8Array(e.target.result);
-    const wb = XLSX.read(data, { type: 'array' });
+    const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
     if (type === 'draping') {
       drapingWb = wb;
       document.getElementById('zone-draping').classList.add('loaded');
       document.getElementById('fname-draping').textContent = file.name;
-      const ph1 = document.getElementById('fname-draping-placeholder');
-      if (ph1) ph1.style.display = 'none';
+      document.getElementById('fname-draping-placeholder').style.display = 'none';
     } else {
       vlrWb = wb;
       document.getElementById('zone-vlr').classList.add('loaded');
       document.getElementById('fname-vlr').textContent = file.name;
-      const ph2 = document.getElementById('fname-vlr-placeholder');
-      if (ph2) ph2.style.display = 'none';
+      document.getElementById('fname-vlr-placeholder').style.display = 'none';
+      // Pre-parse VLR sheets
+      vlrSheets = {};
+      for (const name of vlrWb.SheetNames) {
+        const rows = XLSX.utils.sheet_to_json(vlrWb.Sheets[name], { header: 1, defval: null });
+        vlrSheets[name] = rows.slice(1).filter(r => r[0]).map(r => ({ sku: String(r[0]).trim(), name: String(r[1] || '').trim() }));
+      }
     }
-
-    // Reset all previous results and processing state
-    csvRows = [];
-    document.getElementById('result-box').classList.remove('show');
-    document.getElementById('upload-progress').style.display = 'none';
-    document.getElementById('result-url').innerHTML = '';
-    document.getElementById('btn-open').href = '#';
-    document.getElementById('result-name').textContent = '';
-    document.getElementById('log').innerHTML = '';
-    document.getElementById('log').classList.remove('show');
-    document.getElementById('preview-wrap').classList.remove('show');
-    document.getElementById('preview-info').innerHTML = 'Спочатку завантажте файли...';
-    document.getElementById('step2').classList.remove('active', 'done');
-    document.getElementById('step3').classList.remove('active', 'done');
-    document.getElementById('num2').className = 'step-num pending';
-    document.getElementById('num2').textContent = '2';
-    document.getElementById('num3').className = 'step-num pending';
-    document.getElementById('num3').textContent = '3';
-    document.getElementById('btn-auth').disabled = true;
-    document.getElementById('btn-process').disabled = true;
-
-    if (drapingWb && vlrWb) {
-      document.getElementById('btn-process').disabled = false;
-    }
+    resetResults();
+    if (drapingWb && vlrWb) autoDetectAndShow();
   };
   reader.readAsArrayBuffer(file);
 }
 
-// ─── PROCESSING ──────────────────────────────────────────────────────────────
+// ─── AUTO-DETECT ──────────────────────────────────────────────────────────────
+// Returns { heroSku, heroName, addCollName, matchedSheet } or nulls for unknowns
+function detectFromDraping() {
+  const ws      = drapingWb.Sheets[drapingWb.SheetNames[0]];
+  const data    = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+  const headerRow = data[0] || [];
+
+  const heroColIdx = headerRow.findIndex(c => c && String(c).match(/Hero Fabric/i));
+  const addColIdx  = headerRow.findIndex(c => c && String(c).match(/Remaining/i));
+
+  let heroSku = null, heroName = null, addCollName = null, matchedSheet = null;
+
+  if (heroColIdx !== -1) {
+    const heroHeader = String(headerRow[heroColIdx]);
+    // Find SKU pattern anywhere in the header (e.g. "ALLModern Hero Fabric Lena Sand 2393-83")
+    const skuMatch = heroHeader.match(/(\d{4}-\d+)/);
+    if (skuMatch) {
+      heroSku = skuMatch[1].trim();
+      // Name = everything after "Hero Fabric" keyword, minus the SKU
+      const afterKeyword = heroHeader.replace(/.*Hero Fabric\s*/i, '').replace(heroSku, '').trim();
+      heroName = afterKeyword.replace(/\s+/g, ' ').trim();
+    }
+  }
+
+  if (addColIdx !== -1) {
+    const addHeader   = String(headerRow[addColIdx]);
+    const addColMatch = addHeader.match(/Remaining\s+(.+?)\s+Fabric(?:s|\s+List)?$/i);
+    if (addColMatch) {
+      addCollName = addColMatch[1].trim();
+      // Try to match sheet in VLR
+      matchedSheet = Object.keys(vlrSheets).find(s => s.toLowerCase() === addCollName.toLowerCase())
+                  || Object.keys(vlrSheets).find(s => s.toLowerCase().includes(addCollName.toLowerCase()));
+    }
+  }
+
+  return { heroSku, heroName, addCollName, matchedSheet };
+}
+
+function autoDetectAndShow() {
+  const { heroSku, heroName, addCollName, matchedSheet } = detectFromDraping();
+
+  const heroKnown = !!heroSku;
+  const collKnown = !!matchedSheet;
+
+  if (heroKnown && collKnown) {
+    // ── FULLY AUTO: show green bar + button, hide panel ──
+    activeSheet = matchedSheet;
+    selectedFabrics = new Set(vlrSheets[matchedSheet].map(f => f.sku));
+
+    const bar = document.getElementById('auto-detect-bar');
+    bar.style.display = 'flex';
+    document.getElementById('auto-detect-text').innerHTML =
+      `✅ Визначено автоматично: <span style="color:var(--success);">${heroSku} ${heroName}</span> · Колекція: <span style="color:var(--success);">${matchedSheet}</span> (${vlrSheets[matchedSheet].length} тканин)`;
+    document.getElementById('fabric-panel').classList.remove('show');
+
+  } else {
+    // ── NEEDS INPUT: show fabric panel ──
+    document.getElementById('auto-detect-bar').style.display = 'none';
+    buildFabricPanel(heroKnown ? matchedSheet : null, !heroKnown);
+
+    if (!heroKnown && !collKnown) {
+      document.getElementById('fp-title').textContent = '🧵 Оберіть колекцію тканин';
+      document.getElementById('fp-subtitle').textContent = 'Hero SKU і колекцію не визначено автоматично — оберіть аркуш';
+    } else if (!collKnown) {
+      document.getElementById('fp-title').textContent = '🧵 Оберіть колекцію тканин';
+      document.getElementById('fp-subtitle').textContent = `Hero: ${heroSku} ${heroName || ''} · Не вдалось знайти аркуш для «${addCollName || 'невідомо'}» — оберіть вручну`;
+    } else if (!heroKnown) {
+      document.getElementById('fp-title').textContent = '🧵 Колекція: ' + matchedSheet;
+      document.getElementById('fp-subtitle').textContent = `Колекція визначена автоматично. Оберіть hero тканину вище.`;
+    }
+  }
+}
+
+// ─── FABRIC PANEL ─────────────────────────────────────────────────────────────
+function buildFabricPanel(suggestSheet, showHero) {
+  manualHeroSku = null; manualHeroName = null;
+
+  // Show/hide hero section
+  const heroSection = document.getElementById('hero-section');
+  heroSection.style.display = showHero ? 'block' : 'none';
+  if (showHero) renderHeroList('');
+
+  // Build sheet tabs
+  const tabsEl = document.getElementById('sheet-tabs');
+  tabsEl.innerHTML = '';
+  const firstSheet = suggestSheet || vlrWb.SheetNames[0];
+  vlrWb.SheetNames.forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'sheet-tab' + (name === firstSheet ? ' active' : '');
+    btn.textContent = `${name} (${vlrSheets[name].length})`;
+    btn.onclick = () => switchSheet(name, btn);
+    tabsEl.appendChild(btn);
+  });
+
+  switchSheet(firstSheet, tabsEl.querySelector('.sheet-tab.active'));
+  document.getElementById('fabric-panel').classList.add('show');
+}
+
+// ─── HERO LIST ─────────────────────────────────────────────────────────────────
+function allFabricsFlat() {
+  const seen = new Set();
+  const result = [];
+  for (const name of Object.keys(vlrSheets)) {
+    for (const f of vlrSheets[name]) {
+      if (!seen.has(f.sku)) { seen.add(f.sku); result.push({ ...f, sheet: name }); }
+    }
+  }
+  return result;
+}
+
+function renderHeroList(query) {
+  const list = document.getElementById('hero-list');
+  list.innerHTML = '';
+  const q = query.toLowerCase();
+  const fabrics = allFabricsFlat().filter(f =>
+    !q || f.sku.toLowerCase().includes(q) || f.name.toLowerCase().includes(q) || f.sheet.toLowerCase().includes(q)
+  );
+  fabrics.forEach(f => {
+    const chip = document.createElement('div');
+    chip.className = 'hero-chip' + (manualHeroSku === f.sku ? ' sel' : '');
+    chip.dataset.sku = f.sku;
+    chip.innerHTML = `<span class="chip-sku">${esc(f.sku)}</span>${f.name ? `<span class="chip-name">${esc(f.name)}</span>` : ''}<span style="font-size:9px;color:var(--muted);margin-left:2px;">${esc(f.sheet)}</span>`;
+    chip.onclick = () => pickHero(f.sku, f.name, chip);
+    list.appendChild(chip);
+  });
+}
+
+function filterHeroList(q) { renderHeroList(q); }
+
+function pickHero(sku, name, el) {
+  manualHeroSku = sku; manualHeroName = name;
+  document.querySelectorAll('.hero-chip').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  // scroll into view
+  el.scrollIntoView({ block: 'nearest' });
+}
+
+function switchSheet(name, tabEl) {
+  activeSheet = name;
+  document.querySelectorAll('.sheet-tab').forEach(t => t.classList.remove('active'));
+  if (tabEl) tabEl.classList.add('active');
+
+  selectedFabrics = new Set(vlrSheets[name].map(f => f.sku));
+  document.getElementById('fabric-search').value = '';
+  renderChips('');
+  updateSelCount();
+
+  const total = vlrSheets[name].length;
+  document.getElementById('fp-subtitle').textContent = `Аркуш «${name}» — ${total} тканин. Зніміть галочку з тих, що не потрібні.`;
+}
+
+function renderChips(query) {
+  const grid = document.getElementById('fabric-grid');
+  grid.innerHTML = '';
+  const q = query.toLowerCase();
+  const fabrics = vlrSheets[activeSheet] || [];
+  const filtered = q ? fabrics.filter(f => f.sku.toLowerCase().includes(q) || f.name.toLowerCase().includes(q)) : fabrics;
+
+  filtered.forEach(f => {
+    const chip = document.createElement('div');
+    chip.className = 'fabric-chip' + (selectedFabrics.has(f.sku) ? ' sel' : '');
+    chip.dataset.sku = f.sku;
+    chip.innerHTML = `<span class="chip-sku">${esc(f.sku)}</span>${f.name ? `<span class="chip-name">${esc(f.name)}</span>` : ''}`;
+    chip.onclick = () => toggleChip(f.sku, chip);
+    grid.appendChild(chip);
+  });
+}
+
+function filterChips(q) { renderChips(q); }
+
+function toggleChip(sku, el) {
+  if (selectedFabrics.has(sku)) { selectedFabrics.delete(sku); el.classList.remove('sel'); }
+  else { selectedFabrics.add(sku); el.classList.add('sel'); }
+  updateSelCount();
+}
+
+function selectAllFabrics() {
+  (vlrSheets[activeSheet] || []).forEach(f => selectedFabrics.add(f.sku));
+  renderChips(document.getElementById('fabric-search').value);
+  updateSelCount();
+}
+
+function deselectAllFabrics() {
+  (vlrSheets[activeSheet] || []).forEach(f => selectedFabrics.delete(f.sku));
+  renderChips(document.getElementById('fabric-search').value);
+  updateSelCount();
+}
+
+function updateSelCount() { document.getElementById('sel-count').textContent = selectedFabrics.size; }
+
+// ─── PROCESSING ───────────────────────────────────────────────────────────────
 function processFiles() {
   const logEl = document.getElementById('log');
-  logEl.innerHTML = '';
-  logEl.classList.add('show');
+  logEl.innerHTML = ''; logEl.classList.add('show');
   setSpinner(true);
 
   try {
     log('info', '▶ Читаємо Draping Worksheet...');
-
-    const ws = drapingWb.Sheets[drapingWb.SheetNames[0]];
-    const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
-
-    // Pre-build VLR sheets index: { sheetName: [{sku, name}, ...] }
-    const vlrSheets = {};
-    for (const sName of vlrWb.SheetNames) {
-      const sData = XLSX.utils.sheet_to_json(vlrWb.Sheets[sName], { header: 1, defval: null });
-      vlrSheets[sName] = sData.slice(1)
-        .filter(r => r[0])
-        .map(r => ({ sku: String(r[0]).trim(), name: String(r[1] || '').trim() }));
-    }
-
-    // Row 0 = header, Row 1 = angle names
+    const ws        = drapingWb.Sheets[drapingWb.SheetNames[0]];
+    const data      = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
     const headerRow = data[0];
     const angleRow  = data[1];
 
-    // Auto-detect hero fabric column (contains "Hero Fabric")
+    // Detect hero fabric col
     const heroColIdx = headerRow.findIndex(c => c && String(c).match(/Hero Fabric/i));
-    if (heroColIdx === -1) throw new Error('Не знайдено колонку "Hero Fabric" у першому рядку!');
+    if (heroColIdx === -1) throw new Error('Не знайдено колонку "Hero Fabric"!');
 
-    // Auto-detect additional fabrics column (contains "Remaining")
-    const addColIdx  = headerRow.findIndex(c => c && String(c).match(/Remaining/i));
-    if (addColIdx === -1) throw new Error('Не знайдено колонку "Remaining..." у першому рядку!');
+    // Detect additional col
+    const addColIdx = headerRow.findIndex(c => c && String(c).match(/Remaining/i));
+    if (addColIdx === -1) throw new Error('Не знайдено колонку "Remaining..."!');
 
-    // Parse hero fabric SKU and name
-    // Handles: "Hero Fabric Mina Sterling 2503-93"        → name before SKU
-    //          "All Modern Hero Fabric 2393-83 Lena Sand" → SKU before name
-    //          "Birch Lane WF2571 Hero Fabric "            → no fabric SKU in header
-    const heroHeader = String(headerRow[heroColIdx]);
-    let heroSku, heroName;
-    const heroMatchEnd = heroHeader.match(/Hero Fabric\s+(.+?)\s+(\d{4}-\d+)\s*$/i);
-    const heroMatchMid = heroHeader.match(/(\d{4}-\d+)\s+(.+)$/);
-    if (heroMatchEnd) {
-      heroSku  = heroMatchEnd[2].trim();
-      heroName = heroMatchEnd[1].trim();
-    } else if (heroMatchMid) {
-      heroSku  = heroMatchMid[1].trim();
-      heroName = heroMatchMid[2].trim();
-    } else {
-      // No fabric SKU in header — ask user to pick from VLR list
-      setSpinner(false);
-      const picked = await showFabricPicker(heroHeader, vlrSheets);
-      if (!picked) throw new Error('Вибір тканини скасовано');
-      heroSku  = picked.sku;
-      heroName = picked.name;
-      setSpinner(true);
-      log('ok', `✓ Обрано тканину: ${heroSku} ${heroName}`);
-    }
-    const heroFull = `${heroSku} ${heroName}`;
+    // Use already-detected values from auto-detect, fallback to manual picks
+    const detected = detectFromDraping();
+    const heroSku     = detected.heroSku     || manualHeroSku  || null;
+    const heroName    = detected.heroName    || manualHeroName || '';
+    const addCollName = detected.addCollName || activeSheet;
+    const heroFull    = heroSku ? `${heroSku} ${heroName}`.trim() : '';
 
-    // Parse additional collection name
-    // Handles: "Remaining All Modern Fabric List" → "All Modern"
-    //          "Remaining Carolina Uph Studio Fabrics" → "Carolina Uph Studio"
-    //          "Remaining Birch Lane Fabric List" → "Birch Lane"
-    const addHeader   = String(headerRow[addColIdx]);
-    const addColMatch = addHeader.match(/Remaining\s+(.+?)\s+Fabric(?:s|\s+List)?$/i);
-    const addCollName = addColMatch ? addColMatch[1].trim() : 'All Modern';
+    log('info', `Hero: ${heroFull || '(не визначено)'} | Additional: ${addCollName}`);
 
-    log('info', `Hero fabric col: ${heroColIdx+1} → ${heroFull}`);
-    log('info', `Additional col: ${addColIdx+1} → ${addCollName}`);
-
-    // Detect hero angle columns: from heroColIdx up to (but not including) addColIdx
-    // Detect additional angle columns: from addColIdx onwards (where angleRow has values)
-    const heroAngleCols = {};
-    const addAngleCols  = {};
+    // Angle columns
+    const heroAngleCols = {}, addAngleCols = {};
     for (let i = heroColIdx; i < addColIdx; i++) {
       if (angleRow[i] && String(angleRow[i]).trim()) heroAngleCols[i] = String(angleRow[i]).trim();
     }
     for (let i = addColIdx; i < addColIdx + 5; i++) {
       if (angleRow[i] && String(angleRow[i]).trim()) addAngleCols[i] = String(angleRow[i]).trim();
     }
-
     log('dim', `Hero angles: ${Object.values(heroAngleCols).join(', ')}`);
     log('dim', `Add angles: ${Object.values(addAngleCols).join(', ')}`);
 
-    // Auto-detect SKU column: find "SKU Number" in header row, fallback to col index 1
-    const skuColIdx = headerRow.findIndex(c => c && String(c).match(/SKU Number/i));
-    const modelSkuCol = skuColIdx !== -1 ? skuColIdx : 1;
-    log('dim', `Model SKU column: ${modelSkuCol+1}`);
+    // SKU column + Flipped SKU column
+    const skuColIdx     = headerRow.findIndex(c => c && String(c).match(/SKU Number/i));
+    const modelSkuCol   = skuColIdx !== -1 ? skuColIdx : 1;
+    const flippedColIdx = headerRow.findIndex(c => c && String(c).match(/Flipped Image/i));
+    const flippedCol    = flippedColIdx !== -1 ? flippedColIdx : 2;
 
-    // Parse model rows (from row index 2 onwards)
+    // Parse models
+    let lastCollection = '';
     const models = [];
     for (let i = 2; i < data.length; i++) {
       const row = data[i];
-      const collection = row[0];
-      const sku = row[modelSkuCol];
-      if (!collection || !sku || String(collection).match(/^(Collection|SKU)$/i)) continue;
-      const heroAngles = Object.entries(heroAngleCols)
-        .filter(([idx]) => row[idx] && String(row[idx]).trim().toLowerCase() === 'yes')
-        .map(([, name]) => name);
-      const addAngles  = Object.entries(addAngleCols)
-        .filter(([idx]) => row[idx] && String(row[idx]).trim().toLowerCase() === 'yes')
-        .map(([, name]) => name);
-      models.push({ collection: `${collection} Collection`, sku, heroAngles, addAngles });
+      if (!row) continue;
+      const collection = row[0] ? String(row[0]).trim() : null;
+      const sku = row[modelSkuCol] ? String(row[modelSkuCol]).trim() : null;
+      if (!sku || String(sku).match(/^(SKU|Image)$/i)) continue;
+      if (collection && !collection.match(/^(Collection|SKU)$/i)) lastCollection = collection;
+      if (!lastCollection) continue;
+      const flippedSku = row[flippedCol] ? String(row[flippedCol]).trim() : null;
+      const isMarked = v => { const s = String(v || '').trim().toLowerCase(); return s === 'yes' || s === 'x' || s === '✓' || s === 'y'; };
+      const heroAngles = Object.entries(heroAngleCols).filter(([idx]) => isMarked(row[idx])).map(([,n]) => n);
+      const addAngles  = Object.entries(addAngleCols).filter(([idx])  => isMarked(row[idx])).map(([,n]) => n);
+      models.push({ collection: `${lastCollection} Collection`, sku, flippedSku, heroAngles, addAngles });
     }
-    log('ok', `✓ Знайдено моделей: ${models.length}`);
+    const flippedCount = models.filter(m => m.flippedSku).length;
+    log('ok', `✓ Моделей: ${models.length} (з них фліпнутих: ${flippedCount})`);
 
-    // Get VLR fabrics for the additional collection
-    // Find best matching sheet by name
-    const vlrSheetKey = Object.keys(vlrSheets).find(s => s.toLowerCase() === addCollName.toLowerCase())
-                     || Object.keys(vlrSheets).find(s => s.toLowerCase().includes(addCollName.toLowerCase()))
-                     || vlrWb.SheetNames[0];
-    const addFabrics = (vlrSheets[vlrSheetKey] || [])
-      .map(r => r.sku)
-      .filter(f => f && f !== heroSku);
+    // Selected fabrics (ordered from active sheet, hero excluded)
+    const addFabrics = (vlrSheets[activeSheet] || [])
+      .map(f => f.sku)
+      .filter(s => selectedFabrics.has(s) && s !== heroSku);
 
-    log('ok', `✓ Тканин у ${addCollName}: ${addFabrics.length} (hero виключено)`);
+    log('ok', `✓ Тканин вибрано: ${addFabrics.length}`);
 
     // Build rows
-    csvRows = [['Name', 'Description', 'Message', 'Invite', 'SKU', 'Items', 'Estimate Date']];
-
+    csvRows = [['Name','Description','Message','Invite','SKU','Items','Estimate Date']];
     for (const m of models) {
-      // Hero row
-      if (m.heroAngles.length) {
-        const nHero  = m.heroAngles.length;
-        const items  = Array(nHero).fill(PRICE_CODE).join(', ') + ', ';
-        const msg    = `В неймінгу задачі СКУ моделі і текстури яка потрібна. Кількість рендерів: ${nHero}\nРакурси які потрібні:\n` + m.heroAngles.map(a => `- ${a}`).join('\n');
-        csvRows.push([`${m.collection} ${m.sku} // ${heroFull} Draping`, '', msg, '', heroSku + ', Silo scene', items, '']);
+      // ── Row 1: Hero ──
+      if (m.heroAngles.length && heroSku) {
+        const n     = m.heroAngles.length;
+        const items = Array(n).fill(PRICE_CODE).join(', ') + ', ';
+        const msg   = `В неймінгу задачі СКУ моделі і текстури яка потрібна. Кількість рендерів: ${n}\nРакурси які потрібні:\n` + m.heroAngles.map(a => `- ${a}`).join('\n');
+        csvRows.push([`${m.collection} ${m.sku} // ${heroFull} Draping`, '', msg, '', `${heroSku}, Silo scene`, items, '']);
+
+        // ── Row 2: Flipped hero ──
+        if (m.flippedSku) {
+          const msgF = `В неймінгу задачі СКУ моделі і текстури яка потрібна. Кількість рендерів: ${n}\nРакурси які потрібні:\n` + m.heroAngles.map(a => `- ${a}`).join('\n');
+          csvRows.push([`${m.collection} ${m.flippedSku} // ${heroFull} Draping Flipped`, '', msgF, '', `${heroSku}, Silo scene`, items, '']);
+        }
       }
-      // Additional fabrics row
-      if (m.addAngles.length) {
-        const n      = m.addAngles.length * addFabrics.length;
-        const items  = Array(n).fill(PRICE_CODE).join(', ') + ', ';
-        const skus   = addFabrics.join(', ');
-        const msg    = `В неймінгу задачі СКУ моделі яка потрібна. Кількість рендерів: ${n}\nРакурси які потрібні:\n` + m.addAngles.map(a => `- ${a}`).join('\n') + '\n';
-        csvRows.push([`${m.collection} ${m.sku} // ${addCollName} Fabric Draping`, '', msg, '', skus + ', Silo scene', items, '']);
+      // ── Row 3: Additional fabrics (original SKU) ──
+      if (m.addAngles.length && addFabrics.length) {
+        const nAngles = m.addAngles.length;
+        const nTotal  = nAngles * addFabrics.length;
+        const items   = Array(nTotal).fill(PRICE_CODE).join(', ') + ', ';
+        const msg     = `В неймінгу задачі СКУ моделі яка потрібна. Кількість рендерів: ${nTotal}\nРакурси які потрібні:\n` + m.addAngles.map(a => `- ${a}`).join('\n');
+        csvRows.push([`${m.collection} ${m.sku} // ${addCollName} Fabric Draping`, '', msg, '', `${addFabrics.join(', ')}, Silo scene`, items, '']);
+
+        // ── Row 4: Additional fabrics flipped ──
+        if (m.flippedSku) {
+          csvRows.push([`${m.collection} ${m.flippedSku} // ${addCollName} Fabric Draping Flipped`, '', msg, '', `${addFabrics.join(', ')}, Silo scene`, items, '']);
+        }
       }
     }
 
-    log('ok', `✓ Рядків згенеровано: ${csvRows.length - 1}`);
-    log('ok', '✅ Обробка завершена!');
+    log('ok', `✓ Рядків: ${csvRows.length - 1}`);
+    log('ok', '✅ Готово!');
 
-    // Show preview
     renderPreview(csvRows);
     setStep2Done();
     setSpinner(false);
@@ -863,12 +730,10 @@ function renderPreview(rows) {
     tbody.appendChild(tr);
   }
   document.getElementById('preview-wrap').classList.add('show');
-  document.getElementById('preview-info').innerHTML = `
-    <span class="row-count">📋 ${rows.length-1} рядків готово до завантаження</span>
-  `;
+  document.getElementById('preview-info').innerHTML = `<span class="row-count">📋 ${rows.length-1} рядків готово</span>`;
 }
 
-// ─── GOOGLE OAUTH ────────────────────────────────────────────────────────────
+// ─── STEP HELPERS ─────────────────────────────────────────────────────────────
 function setStep2Done() {
   document.getElementById('step2').classList.add('active');
   document.getElementById('num2').className = 'step-num done-num';
@@ -878,360 +743,53 @@ function setStep2Done() {
   document.getElementById('btn-auth').disabled = false;
 }
 
-function googleAuth() {
-  // handled by btn-auth onclick
-}
-
-// Handle OAuth redirect with token in hash (when this page IS the redirect)
-window.addEventListener('load', () => {
-  const hash = window.location.hash.substring(1);
-  const params = new URLSearchParams(hash);
-  const token = params.get('access_token');
-  if (token) {
-    if (window.opener) {
-      window.opener.postMessage({ access_token: token }, '*');
-      window.close();
-    }
-  }
-});
-
-function progStep(id, state) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.className = 'prog-step ' + state;
-  const icons = { active: '⏳', done: '✅', error: '❌' };
-  el.textContent = icons[state] + ' ' + el.textContent.replace(/^[^ ]+ /, '');
-}
-
-// ─── FABRIC PICKER MODAL ─────────────────────────────────────────────────────
-function showFabricPicker(heroHeader, vlrSheets) {
-  return new Promise((resolve) => {
-    // Extract suggested sheet from header
-    const heroCollMatch = heroHeader.match(/^(.+?)\s+\w+\d+\s+Hero Fabric/i)
-                       || heroHeader.match(/^(.+?)\s+Hero Fabric/i);
-    const heroCollName  = heroCollMatch ? heroCollMatch[1].trim() : null;
-    const suggestedSheet = heroCollName
-      ? Object.keys(vlrSheets).find(s => s.toLowerCase().includes(heroCollName.toLowerCase()))
-      : null;
-
-    // Build flat list of all fabrics with sheet names
-    const allFabrics = [];
-    for (const [sheet, fabrics] of Object.entries(vlrSheets)) {
-      for (const f of fabrics) {
-        allFabrics.push({ ...f, sheet });
-      }
-    }
-
-    // Suggested fabrics first (matching sheet), rest after
-    const sorted = [
-      ...allFabrics.filter(f => f.sheet === suggestedSheet),
-      ...allFabrics.filter(f => f.sheet !== suggestedSheet),
-    ];
-
-    let selectedIdx = 0; // pre-select first item
-
-    const overlay = document.createElement('div');
-    overlay.className = 'fabric-modal-overlay';
-
-    const renderList = (filter = '') => {
-      const q = filter.toLowerCase();
-      return sorted
-        .filter(f => !q || f.sku.toLowerCase().includes(q) || f.name.toLowerCase().includes(q) || f.sheet.toLowerCase().includes(q))
-        .map((f, i) => `
-          <div class="fabric-item ${i === 0 && !q ? 'selected' : ''}"
-               data-sku="${f.sku}" data-name="${f.name}" data-i="${i}"
-               onclick="pickFabricItem(this)">
-            <span class="fabric-sku">${f.sku}</span>
-            <span class="fabric-name">${f.name}</span>
-            <span class="fabric-sheet">${f.sheet}</span>
-          </div>
-        `).join('');
-    };
-
-    overlay.innerHTML = `
-      <div class="fabric-modal">
-        <div>
-          <div class="fabric-modal-title">🎨 Оберіть hero тканину</div>
-          <div class="fabric-modal-subtitle">
-            Заголовок "<b>${heroHeader.trim()}</b>" не містить SKU тканини.<br>
-            ${suggestedSheet ? `Показано тканини <b>${suggestedSheet}</b> першими.` : 'Оберіть тканину зі списку.'}
-          </div>
-        </div>
-        <input class="fabric-search" id="fabric-search-input" placeholder="🔍 Пошук за SKU або назвою..." oninput="filterFabrics(this.value)" autocomplete="off">
-        <div class="fabric-list" id="fabric-list">${renderList()}</div>
-        <div class="fabric-modal-footer">
-          <button class="btn btn-primary" style="flex:1" onclick="confirmFabricPick()">✅ Підтвердити</button>
-          <button class="btn btn-outline" onclick="cancelFabricPick()">Скасувати</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-    document.getElementById('fabric-search-input').focus();
-
-    // Store context on window for event handlers
-    window._fabricPickerResolve = resolve;
-    window._fabricPickerOverlay = overlay;
-    window._fabricPickerSorted  = sorted;
-    window._fabricPickerSelected = sorted[0] || null;
-  });
-}
-
-window.filterFabrics = function(q) {
-  const list = document.getElementById('fabric-list');
-  if (!list) return;
-  const lower = q.toLowerCase();
-  const filtered = window._fabricPickerSorted.filter(f =>
-    !lower || f.sku.toLowerCase().includes(lower) || f.name.toLowerCase().includes(lower) || f.sheet.toLowerCase().includes(lower)
-  );
-  list.innerHTML = filtered.map((f, i) => `
-    <div class="fabric-item ${i === 0 ? 'selected' : ''}"
-         data-sku="${f.sku}" data-name="${f.name}"
-         onclick="pickFabricItem(this)">
-      <span class="fabric-sku">${f.sku}</span>
-      <span class="fabric-name">${f.name}</span>
-      <span class="fabric-sheet">${f.sheet}</span>
-    </div>
-  `).join('');
-  window._fabricPickerSelected = filtered[0] || null;
-};
-
-window.pickFabricItem = function(el) {
-  document.querySelectorAll('.fabric-item').forEach(e => e.classList.remove('selected'));
-  el.classList.add('selected');
-  window._fabricPickerSelected = { sku: el.dataset.sku, name: el.dataset.name };
-};
-
-window.confirmFabricPick = function() {
-  const picked = window._fabricPickerSelected;
-  if (!picked) return;
-  window._fabricPickerOverlay.remove();
-  window._fabricPickerResolve(picked);
-};
-
-window.cancelFabricPick = function() {
-  window._fabricPickerOverlay.remove();
-  window._fabricPickerResolve(null);
-};
-
-async function uploadToSheets() {
-  const btn = document.getElementById('btn-auth');
-  const googleSvg = '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Увійти через Google';
-
-  // Reset any previous result
-  const resultBox = document.getElementById('result-box');
-  resultBox.classList.remove('show');
-  document.getElementById('result-url').innerHTML = '';
-  document.getElementById('btn-open').href = '#';
-  document.getElementById('result-name').textContent = '';
-
-  // Show progress panel, reset steps
-  const progress = document.getElementById('upload-progress');
-  progress.style.display = 'block';
-  ['prog-step1','prog-step2','prog-step3'].forEach((id,i) => {
-    const el = document.getElementById(id);
-    el.className = 'prog-step';
-    el.style.opacity = i === 0 ? '1' : '.3';
-    const labels = ['Створюємо таблицю...','Записуємо дані...','Форматуємо...'];
-    el.textContent = '⏳ ' + labels[i];
-  });
-
-  btn.disabled = true;
-  btn.innerHTML = '⏳ Зачекайте...';
-
-  try {
-    // Determine spreadsheet name
-    const firstRow = csvRows[1] || [];
-    const nameMatch = (firstRow[0] || '').match(/^(.+?) Collection/);
-    const baseName  = nameMatch ? nameMatch[1] : 'Batch';
-    const ssName    = `${baseName} Collection_batch`;
-
-    // STEP 1 — Create spreadsheet
-    document.getElementById('prog-step1').className = 'prog-step active';
-    document.getElementById('prog-step1').textContent = '⏳ Створюємо таблицю...';
-    const createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ properties: { title: ssName } })
-    });
-    const ss = await createRes.json();
-    if (!ss.spreadsheetId) throw new Error(JSON.stringify(ss));
-    const ssId  = ss.spreadsheetId;
-    const ssUrl = ss.spreadsheetUrl;
-    document.getElementById('prog-step1').className = 'prog-step done';
-    document.getElementById('prog-step1').textContent = '✅ Таблицю створено: ' + ssName;
-
-    // STEP 2 — Write data
-    document.getElementById('prog-step2').style.opacity = '1';
-    document.getElementById('prog-step2').className = 'prog-step active';
-    document.getElementById('prog-step2').textContent = `⏳ Записуємо ${csvRows.length - 1} рядків...`;
-    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${ssId}/values/A1?valueInputOption=RAW`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ values: csvRows })
-    });
-    document.getElementById('prog-step2').className = 'prog-step done';
-    document.getElementById('prog-step2').textContent = `✅ Записано ${csvRows.length - 1} рядків`;
-
-    // STEP 3 — Format
-    document.getElementById('prog-step3').style.opacity = '1';
-    document.getElementById('prog-step3').className = 'prog-step active';
-    document.getElementById('prog-step3').textContent = '⏳ Форматуємо заголовок...';
-    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${ssId}:batchUpdate`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        requests: [
-          {
-            repeatCell: {
-              range: { sheetId: 0, startRowIndex: 0, endRowIndex: 1 },
-              cell: { userEnteredFormat: { backgroundColor: { red:.1, green:.1, blue:.2 }, textFormat: { bold: true } } },
-              fields: 'userEnteredFormat(backgroundColor,textFormat)'
-            }
-          },
-          { updateSheetProperties: { properties: { sheetId:0, gridProperties: { frozenRowCount:1 } }, fields:'gridProperties.frozenRowCount' } }
-        ]
-      })
-    });
-    document.getElementById('prog-step3').className = 'prog-step done';
-    document.getElementById('prog-step3').textContent = '✅ Готово!';
-
-    // Small delay so user sees all steps done before result appears
-    await new Promise(r => setTimeout(r, 400));
-    progress.style.display = 'none';
-
-    // Show result
-    resultBox.classList.add('show');
-    document.getElementById('result-name').textContent = ssName;
-    document.getElementById('result-url').innerHTML = `<a href="${ssUrl}" target="_blank">${ssUrl}</a>`;
-    document.getElementById('btn-open').href = ssUrl;
-    document.getElementById('num3').className = 'step-num done-num';
-    document.getElementById('num3').textContent = '✓';
-    document.getElementById('step3').classList.add('done');
-    document.getElementById('google-hint').style.display = 'none';
-    btn.innerHTML = googleSvg;
-    btn.disabled = false;
-
-  } catch(err) {
-    // Show error in progress
-    document.querySelectorAll('.prog-step.active').forEach(el => {
-      el.className = 'prog-step error';
-      el.style.cssText += 'background:rgba(255,79,110,.07);border-color:rgba(255,79,110,.3);color:var(--error);opacity:1';
-      el.textContent = '❌ Помилка: ' + err.message;
-    });
-    btn.disabled = false;
-    btn.innerHTML = googleSvg;
-  }
-}
-
-// Reset UI so user can start fresh with a new file
-function resetForNewFile() {
-  // Reset files
-  drapingWb = null; vlrWb = null; csvRows = [];
-  document.getElementById('zone-draping').classList.remove('loaded');
-  document.getElementById('zone-vlr').classList.remove('loaded');
-  document.getElementById('fname-draping').textContent = '';
-  document.getElementById('fname-vlr').textContent = '';
-  const ph1 = document.getElementById('fname-draping-placeholder');
-  const ph2 = document.getElementById('fname-vlr-placeholder');
-  if (ph1) ph1.style.display = '';
-  if (ph2) ph2.style.display = '';
-  document.getElementById('inp-draping').value = '';
-  document.getElementById('inp-vlr').value = '';
-  // Reset steps
+function resetResults() {
+  csvRows = [];
   document.getElementById('result-box').classList.remove('show');
   document.getElementById('upload-progress').style.display = 'none';
   document.getElementById('preview-wrap').classList.remove('show');
-  document.getElementById('log').classList.remove('show');
   document.getElementById('log').innerHTML = '';
+  document.getElementById('log').classList.remove('show');
   document.getElementById('preview-info').innerHTML = 'Спочатку завантажте файли...';
-  document.getElementById('btn-process').disabled = true;
-  document.getElementById('btn-auth').disabled = true;
   document.getElementById('step2').classList.remove('active','done');
   document.getElementById('step3').classList.remove('active','done');
   document.getElementById('num2').className = 'step-num pending'; document.getElementById('num2').textContent = '2';
   document.getElementById('num3').className = 'step-num pending'; document.getElementById('num3').textContent = '3';
-  document.getElementById('step1').classList.add('active');
-  document.getElementById('num1').className = 'step-num active-num';
+  document.getElementById('btn-auth').disabled = true;
+}
+
+function resetAll() {
+  drapingWb = null; vlrWb = null; vlrSheets = {}; activeSheet = null; selectedFabrics = new Set(); manualHeroSku = null; manualHeroName = null;
+  ['draping','vlr'].forEach(id => {
+    document.getElementById('zone-'+id).classList.remove('loaded');
+    document.getElementById('fname-'+id).textContent = '';
+    document.getElementById('fname-'+id+'-placeholder').style.display = '';
+    document.getElementById('inp-'+id).value = '';
+  });
+  document.getElementById('fabric-panel').classList.remove('show');
+  document.getElementById('auto-detect-bar').style.display = 'none';
+  document.getElementById('sheet-tabs').innerHTML = '';
+  document.getElementById('fabric-grid').innerHTML = '';
+  document.getElementById('sel-count').textContent = '0';
+  resetResults();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ─── CLIENT ID MODAL ─────────────────────────────────────────────────────────
-function showClientIdModal() {
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;';
-  overlay.innerHTML = `
-    <div style="background:#111118;border:1px solid #2a2a3a;border-radius:20px;padding:32px;max-width:520px;width:100%;font-family:DM Mono,monospace;">
-      <div style="font-family:Unbounded,sans-serif;font-size:18px;font-weight:700;color:#e8e8f0;margin-bottom:8px;">🔑 Потрібен Google Client ID</div>
-      <p style="color:#666680;font-size:12px;line-height:1.7;margin-bottom:20px;">
-        Для автоматичного завантаження в Google Sheets потрібно створити OAuth Client ID у Google Cloud Console.
-      </p>
-      <div style="background:#0d0d14;border:1px solid #2a2a3a;border-radius:10px;padding:16px;margin-bottom:20px;font-size:11px;color:#aaa;line-height:2;">
-        <div style="color:#7c6eff;margin-bottom:8px;font-size:12px;">Кроки:</div>
-        1. Відкрийте <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:#7c6eff;">console.cloud.google.com/apis/credentials</a><br>
-        2. Створіть проект → <b>Create Credentials → OAuth client ID</b><br>
-        3. Тип: <b>Web application</b><br>
-        4. <b>Authorized JavaScript origins:</b><br>
-        <code style="background:#1a1a2e;padding:3px 8px;border-radius:4px;color:#4fffb0;font-size:11px;">${window.location.origin}</code><br>
-        5. <b>Authorized redirect URIs:</b><br>
-        <code style="background:#1a1a2e;padding:3px 8px;border-radius:4px;color:#4fffb0;font-size:11px;">${(window.location.origin + window.location.pathname).replace(/\/$/, '')}</code><br>
-        6. Увімкніть <b>Google Sheets API</b> у бібліотеці<br>
-        7. Скопіюйте Client ID і вставте нижче
-      </div>
-      <input id="cid-input" placeholder="xxxx.apps.googleusercontent.com" style="width:100%;background:#0d0d14;border:1px solid #2a2a3a;border-radius:8px;padding:10px 14px;color:#e8e8f0;font-family:DM Mono,monospace;font-size:12px;margin-bottom:12px;outline:none;">
-      <div style="display:flex;gap:10px;">
-        <button onclick="applyClientId()" style="flex:1;background:#7c6eff;color:#fff;border:none;border-radius:8px;padding:10px;font-family:DM Mono,monospace;font-size:12px;cursor:pointer;">✅ Зберегти та увійти</button>
-        <button onclick="this.closest('div[style*=fixed]').remove()" style="background:#18181f;color:#666;border:1px solid #2a2a3a;border-radius:8px;padding:10px 16px;font-family:DM Mono,monospace;font-size:12px;cursor:pointer;">Скасувати</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-  overlay.querySelector('#cid-input').focus();
-}
-
-function applyClientId() {
-  const val = document.getElementById('cid-input').value.trim();
-  if (!val) return;
-  // Inject client ID and re-trigger auth
-  document.querySelectorAll('script').forEach(s => {
-    if (s.textContent.includes("CLIENT_ID   = ''")) {
-      // Can't change const at runtime, use sessionStorage
-    }
-  });
-  sessionStorage.setItem('google_client_id', val);
-  document.querySelector('div[style*="fixed"]').remove();
-  doGoogleAuth(val);
+// ─── GOOGLE AUTH ──────────────────────────────────────────────────────────────
+function triggerAuth() {
+  const cid = sessionStorage.getItem('google_client_id') || CLIENT_ID;
+  if (!cid) showClientIdModal();
+  else doGoogleAuth(cid);
 }
 
 function doGoogleAuth(clientId) {
-  const cid = clientId || sessionStorage.getItem('google_client_id') || CLIENT_ID;
-  if (!cid) { showClientIdModal(); return; }
-
-  // redirect_uri must EXACTLY match what's registered in Google Console
-  // Use origin + pathname, strip trailing slash
   const redirectUri = (window.location.origin + window.location.pathname).replace(/\/$/, '');
-
-  const url = `https://accounts.google.com/o/oauth2/v2/auth?` +
-    `client_id=${encodeURIComponent(cid)}&` +
-    `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-    `response_type=token&` +
-    `scope=${encodeURIComponent(SCOPES)}`;
-
-  // Show the exact redirect_uri in console for debugging
-  console.log('OAuth redirect_uri:', redirectUri);
-
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(SCOPES)}`;
   const popup = window.open(url, 'google-auth', 'width=520,height=620,left=200,top=100');
-
-  // Listen for postMessage from popup (when it redirects back here)
-  const msgHandler = (e) => {
-    if (e.data && e.data.access_token) {
-      accessToken = e.data.access_token;
-      window.removeEventListener('message', msgHandler);
-      uploadToSheets();
-    }
+  const msgHandler = e => {
+    if (e.data && e.data.access_token) { accessToken = e.data.access_token; window.removeEventListener('message', msgHandler); uploadToSheets(); }
   };
   window.addEventListener('message', msgHandler);
-
-  // Also poll popup hash directly (same-origin after redirect)
   const check = setInterval(() => {
     if (!popup || popup.closed) { clearInterval(check); return; }
     try {
@@ -1239,36 +797,147 @@ function doGoogleAuth(clientId) {
       if (hash && hash.includes('access_token')) {
         const params = new URLSearchParams(hash.substring(1));
         const token = params.get('access_token');
-        if (token) {
-          accessToken = token;
-          popup.close();
-          clearInterval(check);
-          window.removeEventListener('message', msgHandler);
-          uploadToSheets();
-        }
+        if (token) { accessToken = token; popup.close(); clearInterval(check); window.removeEventListener('message', msgHandler); uploadToSheets(); }
       }
-    } catch(e) { /* cross-origin, wait for redirect back */ }
+    } catch(e) {}
   }, 400);
 }
 
-// Override googleAuth to use sessionStorage if available
-document.getElementById('btn-auth').onclick = () => {
-  const cid = sessionStorage.getItem('google_client_id') || CLIENT_ID;
-  if (!cid) showClientIdModal();
-  else doGoogleAuth(cid);
-};
+window.addEventListener('load', () => {
+  const hash = window.location.hash.substring(1);
+  const params = new URLSearchParams(hash);
+  const token = params.get('access_token');
+  if (token && window.opener) { window.opener.postMessage({ access_token: token }, '*'); window.close(); }
+});
 
-// ─── UTILS ───────────────────────────────────────────────────────────────────
-function log(type, msg) {
-  const el = document.getElementById('log');
-  el.innerHTML += `<div class="${type}">${esc(msg)}</div>`;
-  el.scrollTop = el.scrollHeight;
+// ─── UPLOAD TO SHEETS ─────────────────────────────────────────────────────────
+async function uploadToSheets() {
+  const btn = document.getElementById('btn-auth');
+  document.getElementById('result-box').classList.remove('show');
+  const progress = document.getElementById('upload-progress');
+  progress.style.display = 'block';
+  [['prog-step1','Створюємо таблицю...'],['prog-step2','Записуємо дані...'],['prog-step3','Форматуємо...']].forEach(([id, label], i) => {
+    const el = document.getElementById(id);
+    el.className = 'prog-step'; el.style.opacity = i === 0 ? '1' : '.3';
+    el.textContent = '⏳ ' + label;
+  });
+  btn.disabled = true; btn.innerHTML = '⏳ Зачекайте...';
+
+  try {
+    const firstRow = csvRows[1] || [];
+    const nameMatch = (firstRow[0] || '').match(/^(.+?) Collection/);
+    const ssName = (nameMatch ? nameMatch[1] : 'Batch') + ' Collection_batch';
+
+    document.getElementById('prog-step1').className = 'prog-step active';
+    const createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ properties: { title: ssName } })
+    });
+    const ss = await createRes.json();
+    if (!ss.spreadsheetId) throw new Error(JSON.stringify(ss));
+    document.getElementById('prog-step1').className = 'prog-step done';
+    document.getElementById('prog-step1').textContent = '✅ Таблицю створено: ' + ssName;
+
+    document.getElementById('prog-step2').style.opacity = '1';
+    document.getElementById('prog-step2').className = 'prog-step active';
+    document.getElementById('prog-step2').textContent = `⏳ Записуємо ${csvRows.length - 1} рядків...`;
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${ss.spreadsheetId}/values/A1?valueInputOption=RAW`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ values: csvRows })
+    });
+    document.getElementById('prog-step2').className = 'prog-step done';
+    document.getElementById('prog-step2').textContent = `✅ Записано ${csvRows.length - 1} рядків`;
+
+    document.getElementById('prog-step3').style.opacity = '1';
+    document.getElementById('prog-step3').className = 'prog-step active';
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${ss.spreadsheetId}:batchUpdate`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requests: [
+          { repeatCell: { range: { sheetId:0, startRowIndex:0, endRowIndex:1 }, cell: { userEnteredFormat: { backgroundColor:{red:.1,green:.1,blue:.2}, textFormat:{bold:true} } }, fields: 'userEnteredFormat(backgroundColor,textFormat)' } },
+          { updateSheetProperties: { properties: { sheetId:0, gridProperties:{frozenRowCount:1} }, fields:'gridProperties.frozenRowCount' } }
+        ]
+      })
+    });
+    document.getElementById('prog-step3').className = 'prog-step done';
+    document.getElementById('prog-step3').textContent = '✅ Готово!';
+
+    await new Promise(r => setTimeout(r, 400));
+    progress.style.display = 'none';
+
+    document.getElementById('result-box').classList.add('show');
+    document.getElementById('result-name').textContent = ssName;
+    document.getElementById('result-url').innerHTML = `<a href="${ss.spreadsheetUrl}" target="_blank">${ss.spreadsheetUrl}</a>`;
+    document.getElementById('btn-open').href = ss.spreadsheetUrl;
+    document.getElementById('num3').className = 'step-num done-num'; document.getElementById('num3').textContent = '✓';
+    document.getElementById('step3').classList.add('done');
+    document.getElementById('google-hint').style.display = 'none';
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Увійти через Google';
+  } catch(err) {
+    document.querySelectorAll('.prog-step.active').forEach(el => {
+      el.style.cssText += 'background:rgba(255,79,110,.07);border-color:rgba(255,79,110,.3);color:var(--error);opacity:1';
+      el.textContent = '❌ Помилка: ' + err.message;
+    });
+    btn.disabled = false;
+  }
 }
+
+// ─── CLIENT ID MODAL ──────────────────────────────────────────────────────────
+function showClientIdModal() {
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  ov.innerHTML = `
+    <div style="background:#111118;border:1px solid #2a2a3a;border-radius:20px;padding:32px;max-width:520px;width:100%;font-family:DM Mono,monospace;">
+      <div style="font-family:Unbounded,sans-serif;font-size:18px;font-weight:700;color:#e8e8f0;margin-bottom:8px;">🔑 Потрібен Google Client ID</div>
+      <p style="color:#666680;font-size:12px;line-height:1.7;margin-bottom:20px;">Для автоматичного завантаження в Google Sheets потрібно створити OAuth Client ID у Google Cloud Console.</p>
+      <div style="background:#0d0d14;border:1px solid #2a2a3a;border-radius:10px;padding:16px;margin-bottom:20px;font-size:11px;color:#aaa;line-height:2;">
+        <div style="color:#7c6eff;margin-bottom:8px;font-size:12px;">Кроки:</div>
+        1. <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:#7c6eff;">console.cloud.google.com/apis/credentials</a><br>
+        2. Create Credentials → <b>OAuth client ID</b> → тип: <b>Web application</b><br>
+        3. Authorized JS origins: <code style="background:#1a1a2e;padding:2px 7px;border-radius:4px;color:#4fffb0;">${window.location.origin}</code><br>
+        4. Authorized redirect URIs: <code style="background:#1a1a2e;padding:2px 7px;border-radius:4px;color:#4fffb0;">${(window.location.origin+window.location.pathname).replace(/\/$/,'')}</code><br>
+        5. Увімкніть <b>Google Sheets API</b> у бібліотеці
+      </div>
+      <input id="cid-input" placeholder="xxxx.apps.googleusercontent.com" style="width:100%;background:#0d0d14;border:1px solid #2a2a3a;border-radius:8px;padding:10px 14px;color:#e8e8f0;font-family:DM Mono,monospace;font-size:12px;margin-bottom:12px;outline:none;">
+      <div style="display:flex;gap:10px;">
+        <button onclick="applyClientId()" style="flex:1;background:#7c6eff;color:#fff;border:none;border-radius:8px;padding:10px;font-family:DM Mono,monospace;font-size:12px;cursor:pointer;">✅ Зберегти та увійти</button>
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="background:#18181f;color:#666;border:1px solid #2a2a3a;border-radius:8px;padding:10px 16px;font-family:DM Mono,monospace;font-size:12px;cursor:pointer;">Скасувати</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#cid-input').focus();
+}
+
+function applyClientId() {
+  const val = document.getElementById('cid-input').value.trim();
+  if (!val) return;
+  sessionStorage.setItem('google_client_id', val);
+  document.querySelector('div[style*="fixed"]').remove();
+  doGoogleAuth(val);
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function log(type, msg) { const el = document.getElementById('log'); el.innerHTML += `<div class="${type}">${esc(msg)}</div>`; el.scrollTop = el.scrollHeight; }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function setSpinner(on) {
-  document.getElementById('spinner').style.display = on ? 'inline-block' : 'none';
-  document.getElementById('btn-process-text').textContent = on ? 'Обробляємо...' : '⚡ Обробити файли';
-  document.getElementById('btn-process').disabled = on;
+  // Auto-bar button
+  const sp1 = document.getElementById('spinner');
+  if (sp1) { sp1.style.display = on ? 'inline-block' : 'none'; }
+  const t1 = document.getElementById('btn-process-text');
+  if (t1) t1.textContent = on ? 'Обробляємо...' : '⚡ Обробити файли';
+  const b1 = document.getElementById('btn-process');
+  if (b1) b1.disabled = on;
+  // Panel button
+  const sp2 = document.getElementById('spinner-panel');
+  if (sp2) { sp2.style.display = on ? 'inline-block' : 'none'; }
+  const t2 = document.getElementById('btn-process-panel-text');
+  if (t2) t2.textContent = on ? 'Обробляємо...' : '⚡ Обробити файли';
+  const b2 = document.getElementById('btn-process-panel');
+  if (b2) b2.disabled = on;
 }
 </script>
 </body>
