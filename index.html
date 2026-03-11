@@ -499,7 +499,8 @@ function showFlippedBarIfNeeded() {
     if (!row) continue;
     const sku = row[modelSkuCol] ? String(row[modelSkuCol]).trim() : null;
     if (!sku || String(sku).match(/^(SKU|Image)$/i)) continue;
-    if (row[flippedCol] && String(row[flippedCol]).trim()) count++;
+    const flippedVal = row[flippedCol] ? String(row[flippedCol]).trim() : null;
+    if (flippedVal && flippedVal !== sku) count++;
   }
   const bar = document.getElementById('flipped-code-bar');
   if (count > 0) {
@@ -683,7 +684,8 @@ function processFiles() {
       if (!sku || String(sku).match(/^(SKU|Image)$/i)) continue;
       if (collection && !collection.match(/^(Collection|SKU)$/i)) lastCollection = collection;
       if (!lastCollection) continue;
-      const flippedSku = row[flippedCol] ? String(row[flippedCol]).trim() : null;
+      const flippedRaw = row[flippedCol] ? String(row[flippedCol]).trim() : null;
+      const flippedSku = (flippedRaw && flippedRaw !== sku) ? flippedRaw : null;
       const isMarked = v => { const s = String(v || '').trim().toLowerCase(); return s === 'yes' || s === 'x' || s === '✓' || s === 'y'; };
       const heroAngles = Object.entries(heroAngleCols).filter(([idx]) => isMarked(row[idx])).map(([,n]) => n);
       const addAngles  = Object.entries(addAngleCols).filter(([idx])  => isMarked(row[idx])).map(([,n]) => n);
