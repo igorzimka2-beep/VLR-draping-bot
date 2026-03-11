@@ -235,6 +235,11 @@
         </button>
       </div>
 
+      <!-- ── FLIPPED PRICE CODE: shown only when flipped models detected ── -->
+      <div id="flipped-code-bar" style="display:none; margin-top:10px; padding:10px 16px; background:var(--surface2); border:1px solid rgba(255,110,156,.2); border-radius:10px; font-size:12px; color:var(--muted); align-items:center; gap:8px;">
+        🔄 Знайдено <span id="flipped-count-label" style="color:var(--accent2);font-weight:500;"></span> фліпнутих моделей · price code: <span style="color:var(--accent2);font-weight:500;">402744</span>
+      </div>
+
       <!-- ── FABRIC PANEL: shown only when collection is unknown ── -->
       <div class="fabric-panel" id="fabric-panel">
 
@@ -354,9 +359,10 @@
 
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-const CLIENT_ID  = '';
-const SCOPES     = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
-const PRICE_CODE = '384257';
+const CLIENT_ID        = '';
+const SCOPES           = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
+const PRICE_CODE         = '384257';
+const FLIPPED_PRICE_CODE = '402744';
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let drapingWb = null, vlrWb = null;
@@ -476,9 +482,33 @@ function autoDetectAndShow() {
       document.getElementById('fp-subtitle').textContent = `Колекція визначена автоматично. Оберіть hero тканину вище.`;
     }
   }
+  showFlippedBarIfNeeded();
 }
 
-// ─── FABRIC PANEL ─────────────────────────────────────────────────────────────
+function showFlippedBarIfNeeded() {
+  if (!drapingWb) return;
+  const ws   = drapingWb.Sheets[drapingWb.SheetNames[0]];
+  const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+  const skuColIdx = (data[0] || []).findIndex(c => c && String(c).match(/SKU Number/i));
+  const modelSkuCol = skuColIdx !== -1 ? skuColIdx : 1;
+  const flippedColIdx = (data[0] || []).findIndex(c => c && String(c).match(/Flipped Image/i));
+  const flippedCol = flippedColIdx !== -1 ? flippedColIdx : 2;
+  let count = 0;
+  for (let i = 2; i < data.length; i++) {
+    const row = data[i];
+    if (!row) continue;
+    const sku = row[modelSkuCol] ? String(row[modelSkuCol]).trim() : null;
+    if (!sku || String(sku).match(/^(SKU|Image)$/i)) continue;
+    if (row[flippedCol] && String(row[flippedCol]).trim()) count++;
+  }
+  const bar = document.getElementById('flipped-code-bar');
+  if (count > 0) {
+    bar.style.display = 'flex';
+    document.getElementById('flipped-count-label').textContent = count;
+  } else {
+    bar.style.display = 'none';
+  }
+}
 function buildFabricPanel(suggestSheet, showHero) {
   manualHeroSku = null; manualHeroName = null;
 
@@ -681,8 +711,9 @@ function processFiles() {
 
         // ── Row 2: Flipped hero ──
         if (m.flippedSku) {
-          const msgF = `В неймінгу задачі СКУ моделі і текстури яка потрібна. Кількість рендерів: ${n}\nРакурси які потрібні:\n` + m.heroAngles.map(a => `- ${a}`).join('\n');
-          csvRows.push([`${m.collection} ${m.flippedSku} // ${heroFull} Draping Flipped`, '', msgF, '', `${heroSku}, Silo scene`, items, '']);
+          const itemsF = Array(n).fill(FLIPPED_PRICE_CODE).join(', ') + ', ';
+          const msgF   = `Це задача на фліпнуті картинки цієї моделі - "${m.sku}". Ракурси і текстури ті ж самі, просто фліпаємо готові рендери.\nПочинаємо після апруву основної моделі`;
+          csvRows.push([`${m.collection} ${m.flippedSku} // ${heroFull} Draping Flipped`, '', msgF, '', `${heroSku}, Silo scene`, itemsF, '']);
         }
       }
       // ── Row 3: Additional fabrics (original SKU) ──
@@ -690,12 +721,14 @@ function processFiles() {
         const nAngles = m.addAngles.length;
         const nTotal  = nAngles * addFabrics.length;
         const items   = Array(nTotal).fill(PRICE_CODE).join(', ') + ', ';
-        const msg     = `В неймінгу задачі СКУ моделі яка потрібна. Кількість рендерів: ${nTotal}\nРакурси які потрібні:\n` + m.addAngles.map(a => `- ${a}`).join('\n');
+        const msg     = `В неймінгу задачі СКУ моделі яка потрібна. Кількість рендерів: ${nTotal}\nРакурси які потрібні:\n` + m.addAngles.map(a => `- ${a}`).join('\n') + `\nТут починаємо після апруву основної тканини, потрібно стартанути і поставити задачу в паузу`;
         csvRows.push([`${m.collection} ${m.sku} // ${addCollName} Fabric Draping`, '', msg, '', `${addFabrics.join(', ')}, Silo scene`, items, '']);
 
         // ── Row 4: Additional fabrics flipped ──
         if (m.flippedSku) {
-          csvRows.push([`${m.collection} ${m.flippedSku} // ${addCollName} Fabric Draping Flipped`, '', msg, '', `${addFabrics.join(', ')}, Silo scene`, items, '']);
+          const itemsF = Array(nTotal).fill(FLIPPED_PRICE_CODE).join(', ') + ', ';
+          const msgF   = `Це задача на фліпнуті картинки цієї моделі - "${m.sku}". Ракурси і текстури ті ж самі, просто фліпаємо готові рендери.\nПочинаємо після апруву основної моделі`;
+          csvRows.push([`${m.collection} ${m.flippedSku} // ${addCollName} Fabric Draping Flipped`, '', msgF, '', `${addFabrics.join(', ')}, Silo scene`, itemsF, '']);
         }
       }
     }
@@ -719,13 +752,18 @@ function renderPreview(rows) {
   tbody.innerHTML = '';
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
-    const priceCount = (r[5].match(/384257/g) || []).length;
+    const count384 = (r[5].match(/384257/g) || []).length;
+    const count402 = (r[5].match(/402744/g) || []).length;
+    const total = count384 * 7 + count402 * 2;
+    const priceStr = count402 > 0
+      ? `${count402}× $2 = $${count402*2}`
+      : `${count384}× $7 = $${count384*7}`;
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="td-name">${esc(r[0])}</td>
       <td class="td-msg">${esc(r[2].substring(0,80))}${r[2].length>80?'…':''}</td>
       <td class="td-sku">${esc((r[4]||'').substring(0,60))}${(r[4]||'').length>60?'…':''}</td>
-      <td class="td-price">${priceCount}× $7 = $${priceCount*7}</td>
+      <td class="td-price">${priceStr}</td>
     `;
     tbody.appendChild(tr);
   }
@@ -768,6 +806,7 @@ function resetAll() {
   });
   document.getElementById('fabric-panel').classList.remove('show');
   document.getElementById('auto-detect-bar').style.display = 'none';
+  document.getElementById('flipped-code-bar').style.display = 'none';
   document.getElementById('sheet-tabs').innerHTML = '';
   document.getElementById('fabric-grid').innerHTML = '';
   document.getElementById('sel-count').textContent = '0';
